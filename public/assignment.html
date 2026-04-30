@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudNote &#20316;&#19994;&#25910;&#38598;</title>
+  <link rel="stylesheet" href="/assets/icons/assignment-iconfont/font_5169802_qsz37uf46ac/iconfont.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="upload-page">
+  <main class="page upload-page-shell">
+    <section class="panel upload-panel">
+      <div class="brand-row upload-brand-row">
+        <div class="upload-brand">
+          <img class="brand-logo" src="/assets/cloudnote-logo.jpg" alt="CloudNote logo">
+          <div>
+            <p class="eyebrow">CLOUDNOTE</p>
+            <h1 id="uploadPageTitle">&#20113;&#31546;</h1>
+          </div>
+        </div>
+        <a class="admin-link upload-admin-link" href="/admin.html">&#29677;&#38271;&#21518;&#21488;</a>
+      </div>
+
+      <section class="upload-task-card" aria-labelledby="uploadTaskName">
+        <div class="upload-task-head">
+          <div>
+            <span id="uploadStatusBadge" class="upload-status-badge status-loading">&#21152;&#36733;&#20013;</span>
+            <h2 id="uploadTaskName">&#24403;&#21069;&#27809;&#26377;&#25991;&#20214;&#38656;&#35201;&#25910;&#38598;</h2>
+          </div>
+          <p id="assignmentMeta" class="assignment-meta is-hidden"></p>
+        </div>
+        <p id="uploadPageIntro" class="intro secondary-intro">&#35831;&#20351;&#29992;&#29677;&#38271;&#21457;&#24067;&#30340;&#29420;&#31435;&#20219;&#21153;&#38142;&#25509;&#25552;&#20132;&#20316;&#19994;&#12290;</p>
+        <p id="uploadStatusHint" class="upload-status-hint">正在读取任务信息...</p>
+      </section>
+
+      <form id="uploadForm" class="form-card upload-form-card" novalidate>
+        <input id="assignmentIdField" type="hidden" name="assignmentId">
+
+        <div class="upload-form-grid">
+          <section class="upload-section upload-info-section">
+            <div class="upload-section-title">
+              <span>01</span>
+              <h3>&#22635;&#20889;&#20449;&#24687;</h3>
+            </div>
+            <div id="dynamicFields" class="dynamic-fields upload-dynamic-fields"></div>
+            <div class="upload-info-note" aria-label="信息提示">
+              <span class="upload-note-icon" aria-hidden="true">&#10003;</span>
+              <p>&#20449;&#24687;&#20165;&#29992;&#20110;&#26412;&#27425;&#25991;&#20214;&#25910;&#38598;&#65292;<br>&#35831;&#30830;&#20445;&#22635;&#20889;&#20934;&#30830;&#12290;</p>
+            </div>
+          </section>
+
+          <section class="upload-section upload-file-section">
+            <div class="upload-section-title">
+              <span>02</span>
+              <h3>&#19978;&#20256;&#25991;&#20214;</h3>
+            </div>
+            <div id="fileRules" class="file-rules upload-file-rules"></div>
+            <label id="uploadDropzone" class="upload-dropzone" for="fileInput">
+              <input id="fileInput" type="file" name="files" multiple>
+              <span class="upload-drop-icon" aria-hidden="true">&#8593;</span>
+              <strong>&#28857;&#20987;&#25110;&#25302;&#25341;&#25991;&#20214;&#21040;&#27492;&#22788;&#19978;&#20256;</strong>
+              <span>&#21487;&#19968;&#27425;&#36873;&#25321;&#22810;&#20010;&#25991;&#20214;&#65292;&#25552;&#20132;&#21069;&#21487;&#38543;&#26102;&#21024;&#38500;&#12290;</span>
+            </label>
+            <div id="selectedFileList" class="selected-file-list upload-selected-files"></div>
+          </section>
+        </div>
+
+        <section class="upload-section upload-submit-section">
+          <div class="progress-track"><span id="uploadProgressBar"></span></div>
+          <div class="upload-submit-row">
+            <p id="uploadMessage" class="message" role="status"></p>
+            <button type="submit"><i class="iconfont icon-24gl-paperPlane" aria-hidden="true"></i><span class="upload-submit-text">&#25552;&#20132;&#20316;&#19994;</span></button>
+          </div>
+          <div id="submitResult" class="submit-result is-hidden"></div>
+        </section>
+      </form>
+    </section>
+    <footer class="upload-footer">&#128274; &#25991;&#20214;&#25910;&#38598;&#24037;&#20855; &#183; &#23433;&#20840; &#183; &#31616;&#21333; &#183; &#39640;&#25928;</footer>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/debug-logger.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/assignment-page.js"></script>
+</body>
+</html>

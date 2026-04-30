@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudNote &#20316;&#19994;&#25910;&#38598;&#31995;&#32479;</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="panel upload-panel">
+      <div class="brand-row">
+        <img class="brand-logo" src="/assets/cloudnote-logo.jpg" alt="CloudNote logo">
+        <a class="admin-link" href="/admin.html">&#29677;&#38271;&#21518;&#21488;</a>
+      </div>
+
+      <p class="eyebrow">CLOUDNOTE</p>
+      <h1 id="uploadPageTitle">&#20113;&#31546;</h1>
+      <p id="uploadTaskName" class="intro">&#40664;&#35748;&#20316;&#19994;&#25910;&#38598;</p>
+      <p id="uploadPageIntro" class="intro secondary-intro">&#22635;&#20889;&#20449;&#24687;&#24182;&#19978;&#20256;&#25991;&#20214;&#65292;&#25552;&#20132;&#21518;&#29677;&#38271;&#21487;&#20197;&#22312;&#21518;&#21488;&#26597;&#30475;&#21644;&#19979;&#36733;&#12290;</p>
+      <p id="assignmentMeta" class="assignment-meta is-hidden"></p>
+
+      <form id="uploadForm" class="form-card">
+        <input id="assignmentIdField" type="hidden" name="assignmentId">
+
+        <div id="dynamicFields" class="dynamic-fields"></div>
+
+        <label class="file-field">
+          <span>&#36873;&#25321;&#25991;&#20214;</span>
+          <input id="fileInput" type="file" name="files" multiple required>
+        </label>
+
+        <div id="fileRules" class="file-rules"></div>
+        <div id="selectedFileList" class="selected-file-list"></div>
+        <div class="progress-track"><span id="uploadProgressBar"></span></div>
+        <button type="submit">&#25552;&#20132;&#20316;&#19994;</button>
+        <p id="uploadMessage" class="message" role="status"></p>
+        <div id="submitResult" class="submit-result is-hidden"></div>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/debug-logger.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/assignment-page.js"></script>
+</body>
+</html>

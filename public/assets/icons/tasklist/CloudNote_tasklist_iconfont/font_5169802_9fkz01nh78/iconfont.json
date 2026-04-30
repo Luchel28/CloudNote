@@ -1,0 +1,86 @@
+{
+  "id": "5169802",
+  "name": "云笺",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "599956",
+      "name": "复制链接",
+      "font_class": "fuzhilianjie",
+      "unicode": "e66d",
+      "unicode_decimal": 58989
+    },
+    {
+      "icon_id": "1085578",
+      "name": "已完成",
+      "font_class": "yiwancheng",
+      "unicode": "e6a6",
+      "unicode_decimal": 59046
+    },
+    {
+      "icon_id": "1333360",
+      "name": "已删除",
+      "font_class": "yishanchu",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    },
+    {
+      "icon_id": "4880425",
+      "name": "编辑",
+      "font_class": "bianji",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "7335405",
+      "name": "下载",
+      "font_class": "xiazai",
+      "unicode": "eb12",
+      "unicode_decimal": 60178
+    },
+    {
+      "icon_id": "7761519",
+      "name": "删 除 ",
+      "font_class": "shanchu",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "11372665",
+      "name": "复制",
+      "font_class": "fuzhi",
+      "unicode": "e8b0",
+      "unicode_decimal": 59568
+    },
+    {
+      "icon_id": "16053380",
+      "name": "进行中",
+      "font_class": "jinhangzhong",
+      "unicode": "e65b",
+      "unicode_decimal": 58971
+    },
+    {
+      "icon_id": "42198823",
+      "name": "draft-line",
+      "font_class": "draft-line",
+      "unicode": "e78a",
+      "unicode_decimal": 59274
+    },
+    {
+      "icon_id": "1133840",
+      "name": "钻石",
+      "font_class": "zuanshi",
+      "unicode": "e669",
+      "unicode_decimal": 58985
+    },
+    {
+      "icon_id": "19330519",
+      "name": "创建任务",
+      "font_class": "chuangjianrenwu",
+      "unicode": "e666",
+      "unicode_decimal": 58982
+    }
+  ]
+}
