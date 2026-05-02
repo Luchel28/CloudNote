@@ -1,0 +1,27 @@
+/*
+ * CloudNote Admin Overrides
+ * 仅用于后台管理端的低风险覆盖样式。
+ * 不影响学生上传页。
+ */
+
+/* Admin fixed shell scroll patch */
+.admin-workbench {
+  height: calc(100vh - clamp(18px, 3vw, 42px) * 2);
+  min-height: 0;
+}
+
+.admin-topbar,
+.admin-sidebar,
+.admin-content {
+  min-height: 0;
+}
+
+.admin-sidebar {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.admin-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+}

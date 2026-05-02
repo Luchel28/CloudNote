@@ -5995,25 +5995,3 @@ tbody tr:hover td,
     grid-template-columns: 1fr;
   }
 }
-
-/* Admin fixed shell scroll patch */
-.admin-workbench {
-  height: calc(100vh - clamp(18px, 3vw, 42px) * 2);
-  min-height: 0;
-}
-
-.admin-topbar,
-.admin-sidebar,
-.admin-content {
-  min-height: 0;
-}
-
-.admin-sidebar {
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.admin-content {
-  overflow-y: auto;
-  overflow-x: hidden;
-}
