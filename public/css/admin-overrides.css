@@ -509,3 +509,121 @@
     max-width: 100%;
   }
 }
+
+
+/* ---- 八补、统计卡片弱化 & 说明左对齐 ---- */
+
+/* 统计卡片 hover 不强加绿色背景 */
+.task-list-page .assignment-stat-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(10, 166, 106, 0.18);
+  box-shadow: 0 8px 20px rgba(23, 35, 58, 0.08);
+  background: #fff !important;
+}
+
+/* 统计卡片选中态仅轻微绿底 */
+.task-list-page .assignment-stat-card.is-active {
+  border-color: rgba(10, 166, 106, 0.32);
+  background: rgba(10, 166, 106, 0.06) !important;
+  box-shadow:
+    0 0 0 2px rgba(10, 166, 106, 0.08),
+    0 8px 20px rgba(23, 35, 58, 0.06);
+}
+
+/* 任务说明左对齐 */
+.task-list-page .assignment-card {
+  text-align: left;
+}
+
+.task-list-page .assignment-card-main {
+  text-align: left;
+}
+
+.task-list-page .assignment-description {
+  text-align: left;
+  align-self: stretch;
+}
+
+
+/* ---- 九、三点修补：统计卡增强、说明左对齐、间距收紧 ---- */
+
+/* 统计卡片 hover 背景增强 */
+.task-list-page .assignment-stat-card:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(10, 166, 106, 0.10), rgba(255, 255, 255, 0.96)) !important;
+  border-color: rgba(10, 166, 106, 0.35);
+  box-shadow: 0 10px 24px rgba(10, 166, 106, 0.12);
+}
+
+/* 统计卡片选中态更明显 */
+.task-list-page .assignment-stat-card.is-active {
+  background: linear-gradient(135deg, rgba(10, 166, 106, 0.18), rgba(255, 255, 255, 0.92)) !important;
+  border-color: rgba(10, 166, 106, 0.55);
+  box-shadow:
+    0 0 0 2px rgba(10, 166, 106, 0.14),
+    0 12px 28px rgba(10, 166, 106, 0.16);
+}
+
+.task-list-page .assignment-stat-card.is-active .stat-copy strong {
+  color: #0a361e;
+}
+
+.task-list-page .assignment-stat-card.is-active .stat-copy span {
+  color: #0d7c4b;
+}
+
+/* 任务说明左对齐补强 */
+.task-list-page .assignment-description {
+  text-align: left;
+  align-self: stretch;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.task-list-page .assignment-card-main > * {
+  text-align: left;
+}
+
+/* 后台左右间距收紧 */
+.admin-content {
+  padding-left: clamp(14px, 1.6vw, 24px);
+  padding-right: clamp(14px, 1.6vw, 28px);
+}
+
+.admin-sidebar {
+  padding-left: 10px;
+  padding-right: 14px;
+}
+
+
+/* ---- 十、主容器左靠 + 任务列表大卡片 ---- */
+
+/* 所有后台主内容向左靠拢 */
+.admin-content {
+  padding-left: clamp(10px, 1vw, 20px);
+  padding-right: clamp(16px, 2vw, 30px);
+}
+
+.admin-content > .admin-section {
+  margin-left: 0;
+  margin-right: auto;
+  border-radius: 18px;
+}
+
+/* 任务列表页统一大卡片容器 */
+.task-list-page {
+  background: #fff;
+  border: 1px solid rgba(23, 35, 58, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 14px 40px rgba(23, 35, 58, 0.06);
+  padding: clamp(20px, 2.2vw, 30px);
+}
+
+.task-list-page .assignment-toolbar {
+  margin-top: 16px;
+  margin-bottom: 18px;
+}
+
+.task-list-page .assignment-list {
+  margin-top: 18px;
+}
