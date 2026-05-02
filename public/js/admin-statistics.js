@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
   const api = CloudNote.api || {};
   const $ = common.$ || ((selector) => document.querySelector(selector));
@@ -34,12 +34,7 @@
   }
 
   function getFilterParams() {
-    const {
-      statisticsAssignmentFilter,
-      statisticsStartDate,
-      statisticsEndDate,
-      statisticsStatusFilter,
-    } = getElements();
+    const { statisticsAssignmentFilter, statisticsStartDate, statisticsEndDate, statisticsStatusFilter } = getElements();
     const params = new URLSearchParams();
     if (statisticsAssignmentFilter?.value) params.set('assignmentId', statisticsAssignmentFilter.value);
     if (statisticsStartDate?.value) params.set('dateFrom', statisticsStartDate.value);
@@ -49,12 +44,7 @@
   }
 
   function getExportPayload() {
-    const {
-      statisticsAssignmentFilter,
-      statisticsStartDate,
-      statisticsEndDate,
-      statisticsStatusFilter,
-    } = getElements();
+    const { statisticsAssignmentFilter, statisticsStartDate, statisticsEndDate, statisticsStatusFilter } = getElements();
     return {
       assignmentId: statisticsAssignmentFilter?.value || null,
       status: statisticsStatusFilter?.value || '',
@@ -84,17 +74,19 @@
       return;
     }
     const max = Math.max(...trend.map((item) => Number(item.count || 0)), 1);
-    submissionTrendChart.innerHTML = trend.map((item) => {
-      const count = Number(item.count || 0);
-      const height = Math.max(8, Math.round((count / max) * 100));
-      return `
+    submissionTrendChart.innerHTML = trend
+      .map((item) => {
+        const count = Number(item.count || 0);
+        const height = Math.max(8, Math.round((count / max) * 100));
+        return `
         <div class="trend-bar-item" title="${escapeHtml(item.day)}: ${count}">
           <strong class="trend-bar-value">${count}</strong>
           <div class="trend-bar-track"><span style="height:${height}%"></span></div>
           <small>${escapeHtml(String(item.day || '').slice(5))}</small>
         </div>
       `;
-    }).join('');
+      })
+      .join('');
   }
 
   function renderStatusDistribution(summary = {}) {
@@ -128,9 +120,14 @@
   function renderStatisticsTable(items) {
     const { statisticsTable } = getElements();
     if (!statisticsTable) return;
-    statisticsTable.innerHTML = items.map((item) => `
+    statisticsTable.innerHTML =
+      items
+        .map(
+          (item) => `
       <tr><td>${escapeHtml(item.assignmentTitle)}</td><td>${getStatusLabel(item.effectiveStatus)}</td><td>${item.submittedCount}</td><td>${item.submitterCount}</td><td>${escapeHtml(item.submissionStatus || (item.submittedCount > 0 ? '已有提交' : '暂无提交'))}</td><td>${item.lateCount}</td><td>${item.deadline ? formatTime(item.deadline) : '-'}</td></tr>
-    `).join('') || '<tr><td colspan="7" class="empty-cell">暂无统计</td></tr>';
+    `
+        )
+        .join('') || '<tr><td colspan="7" class="empty-cell">暂无统计</td></tr>';
   }
 
   async function load() {
@@ -156,11 +153,13 @@
   async function exportCsv() {
     const { statisticsMessage } = getElements();
     setMessage(statisticsMessage, '');
-    return api.adminDownloadBlob('/api/export-statistics', 'cloudnote-statistics.csv', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(getExportPayload()),
-    }).catch((error) => setMessage(statisticsMessage, error.message, 'error'));
+    return api
+      .adminDownloadBlob('/api/export-statistics', 'cloudnote-statistics.csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(getExportPayload()),
+      })
+      .catch((error) => setMessage(statisticsMessage, error.message, 'error'));
   }
 
   function renderAssignmentOptions(items) {
@@ -180,13 +179,7 @@
   }
 
   function bindEvents() {
-    const {
-      statisticsAssignmentFilter,
-      statisticsStartDate,
-      statisticsEndDate,
-      statisticsStatusFilter,
-      exportStatisticsButton,
-    } = getElements();
+    const { statisticsAssignmentFilter, statisticsStartDate, statisticsEndDate, statisticsStatusFilter, exportStatisticsButton } = getElements();
     statisticsAssignmentFilter?.addEventListener('change', load);
     statisticsStartDate?.addEventListener('change', load);
     statisticsEndDate?.addEventListener('change', load);

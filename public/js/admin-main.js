@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
 
   function isAdminPage() {

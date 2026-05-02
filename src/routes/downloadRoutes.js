@@ -5,15 +5,8 @@ const archiver = require('archiver');
 const { UPLOAD_DIR } = require('../config');
 const { allDb, getDb, runDb } = require('../db');
 const { requireAdmin } = require('../middleware/requireAdmin');
-const {
-  assignmentSelectSql,
-  formatAssignment,
-  parseJson,
-} = require('../utils/assignmentUtils');
-const {
-  safeName,
-  sendStoredFile,
-} = require('../utils/fileUtils');
+const { assignmentSelectSql, formatAssignment, parseJson } = require('../utils/assignmentUtils');
+const { safeName, sendStoredFile } = require('../utils/fileUtils');
 const { msg } = require('../utils/responseUtils');
 
 function registerDownloadRoutes(app) {
@@ -51,9 +44,10 @@ function registerDownloadRoutes(app) {
         const filePath = path.join(UPLOAD_DIR, file.stored_filename);
         if (!fs.existsSync(filePath)) return;
         const data = parseJson(file.submitterData, {});
-        const folder = file.downloadStructure === 'task-file'
-          ? safeName(file.assignmentTitle || 'CloudNote')
-          : path.join(safeName(file.assignmentTitle || 'CloudNote'), safeName(data.studentId || data.studentName || 'unknown'));
+        const folder =
+          file.downloadStructure === 'task-file'
+            ? safeName(file.assignmentTitle || 'CloudNote')
+            : path.join(safeName(file.assignmentTitle || 'CloudNote'), safeName(data.studentId || data.studentName || 'unknown'));
         archive.file(filePath, { name: path.join(folder, safeName(file.original_filename)) });
       });
       archive.finalize();

@@ -1,11 +1,5 @@
 const { ADMIN_PASSWORD, ADMIN_SESSION_TTL_MS, MAX_UPLOAD_FILES, MAX_UPLOAD_SIZE_MB, PUBLIC_BASE_URL } = require('../config');
-const {
-  clearLoginFailure,
-  createAdminToken,
-  getAdminLoginIp,
-  getLoginFailureRecord,
-  recordLoginFailure,
-} = require('../middleware/requireAdmin');
+const { clearLoginFailure, createAdminToken, getAdminLoginIp, getLoginFailureRecord, recordLoginFailure } = require('../middleware/requireAdmin');
 const { msg } = require('../utils/responseUtils');
 
 function registerAuthRoutes(app) {

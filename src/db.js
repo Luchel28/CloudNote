@@ -3,12 +3,7 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
 const { DB_PATH } = require('./config');
-const {
-  DEFAULT_ALLOWED_EXTENSIONS,
-  DEFAULT_FIELD_CONFIG,
-  generateShareCode,
-  normalizeShareCode,
-} = require('./utils/assignmentUtils');
+const { DEFAULT_ALLOWED_EXTENSIONS, DEFAULT_FIELD_CONFIG, generateShareCode, normalizeShareCode } = require('./utils/assignmentUtils');
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
@@ -142,7 +137,11 @@ async function initDatabase() {
   await addColumnIfMissing('assignments', 'status', "ALTER TABLE assignments ADD COLUMN status TEXT NOT NULL DEFAULT 'ongoing'");
   await addColumnIfMissing('assignments', 'updated_at', 'ALTER TABLE assignments ADD COLUMN updated_at TEXT');
   await addColumnIfMissing('assignments', 'field_config', 'ALTER TABLE assignments ADD COLUMN field_config TEXT');
-  await addColumnIfMissing('assignments', 'required_fields', "ALTER TABLE assignments ADD COLUMN required_fields TEXT DEFAULT '[\"studentName\",\"studentId\",\"homeworkTitle\"]'");
+  await addColumnIfMissing(
+    'assignments',
+    'required_fields',
+    'ALTER TABLE assignments ADD COLUMN required_fields TEXT DEFAULT \'["studentName","studentId","homeworkTitle"]\''
+  );
   await addColumnIfMissing('assignments', 'allow_late', 'ALTER TABLE assignments ADD COLUMN allow_late INTEGER NOT NULL DEFAULT 0');
   await addColumnIfMissing('assignments', 'allow_repeat', 'ALTER TABLE assignments ADD COLUMN allow_repeat INTEGER NOT NULL DEFAULT 1');
   await addColumnIfMissing('assignments', 'repeat_mode', "ALTER TABLE assignments ADD COLUMN repeat_mode TEXT NOT NULL DEFAULT 'new'");
@@ -151,7 +150,11 @@ async function initDatabase() {
   await addColumnIfMissing('assignments', 'allowed_extensions', 'ALTER TABLE assignments ADD COLUMN allowed_extensions TEXT');
   await addColumnIfMissing('assignments', 'rename_enabled', 'ALTER TABLE assignments ADD COLUMN rename_enabled INTEGER NOT NULL DEFAULT 1');
   await addColumnIfMissing('assignments', 'rename_fields', 'ALTER TABLE assignments ADD COLUMN rename_fields TEXT');
-  await addColumnIfMissing('assignments', 'download_structure', "ALTER TABLE assignments ADD COLUMN download_structure TEXT NOT NULL DEFAULT 'task-field-file'");
+  await addColumnIfMissing(
+    'assignments',
+    'download_structure',
+    "ALTER TABLE assignments ADD COLUMN download_structure TEXT NOT NULL DEFAULT 'task-field-file'"
+  );
   await addColumnIfMissing('assignments', 'required_upload', 'ALTER TABLE assignments ADD COLUMN required_upload INTEGER NOT NULL DEFAULT 1');
   await addColumnIfMissing('assignments', 'file_type', "ALTER TABLE assignments ADD COLUMN file_type TEXT NOT NULL DEFAULT 'document'");
   await addColumnIfMissing('assignments', 'enable_limit', 'ALTER TABLE assignments ADD COLUMN enable_limit INTEGER NOT NULL DEFAULT 0');
@@ -171,10 +174,15 @@ async function initDatabase() {
 
   await runDb('UPDATE assignments SET updated_at = created_at WHERE updated_at IS NULL');
   await runDb('UPDATE assignments SET field_config = ? WHERE field_config IS NULL OR field_config = ?', [JSON.stringify(DEFAULT_FIELD_CONFIG), '']);
-  await runDb('UPDATE assignments SET allowed_extensions = ? WHERE allowed_extensions IS NULL OR allowed_extensions = ?', [JSON.stringify(DEFAULT_ALLOWED_EXTENSIONS), '']);
+  await runDb('UPDATE assignments SET allowed_extensions = ? WHERE allowed_extensions IS NULL OR allowed_extensions = ?', [
+    JSON.stringify(DEFAULT_ALLOWED_EXTENSIONS),
+    '',
+  ]);
   await runDb('UPDATE assignments SET rename_fields = ? WHERE rename_fields IS NULL OR rename_fields = ?', [JSON.stringify(['studentId', 'studentName']), '']);
   await runDb("UPDATE assignments SET previous_status = 'ongoing' WHERE previous_status IS NULL OR previous_status = ''");
-  await runDb("UPDATE assignments SET deleted_at = COALESCE(updated_at, created_at, ?) WHERE status = 'deleted' AND deleted_at IS NULL", [new Date().toISOString()]);
+  await runDb("UPDATE assignments SET deleted_at = COALESCE(updated_at, created_at, ?) WHERE status = 'deleted' AND deleted_at IS NULL", [
+    new Date().toISOString(),
+  ]);
   await runDb("UPDATE assignments SET delete_source = 'task' WHERE status = 'deleted' AND (delete_source IS NULL OR delete_source = '')");
   await runDb("UPDATE submissions SET delete_source = 'submission' WHERE deleted_at IS NOT NULL AND (delete_source IS NULL OR delete_source = '')");
   await runDb("UPDATE submission_files SET delete_source = 'file' WHERE deleted_at IS NOT NULL AND (delete_source IS NULL OR delete_source = '')");

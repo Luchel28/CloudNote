@@ -1,18 +1,20 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
   const api = CloudNote.api || {};
   const $ = common.$ || ((selector) => document.querySelector(selector));
   const escapeHtml = common.escapeHtml || ((value) => String(value ?? ''));
-  const parseJson = common.parseJson || ((value, fallback) => {
-    try {
-      return value ? JSON.parse(value) : fallback;
-    } catch {
-      return fallback;
-    }
-  });
+  const parseJson =
+    common.parseJson ||
+    ((value, fallback) => {
+      try {
+        return value ? JSON.parse(value) : fallback;
+      } catch {
+        return fallback;
+      }
+    });
   const setMessage = common.setMessage || (() => {});
   const formatTime = common.formatTime || common.formatDateTime || ((value) => value || '-');
   const getStatusLabel = common.getStatusLabel || ((status) => status || '进行中');
@@ -40,11 +42,13 @@
   }
 
   function getConstants() {
-    return formModule().constants || {
-      DEFAULT_FIELDS: [],
-      FIELD_TYPE_LABELS: {},
-      FILE_TYPE_EXTENSION_MAP: {},
-    };
+    return (
+      formModule().constants || {
+        DEFAULT_FIELDS: [],
+        FIELD_TYPE_LABELS: {},
+        FILE_TYPE_EXTENSION_MAP: {},
+      }
+    );
   }
 
   function getElements() {
@@ -121,9 +125,12 @@
         visibility: template.visibility,
       },
     };
-    const normalizedFields = formModule().normalizeAdminFields?.(
-      source.fieldConfig || source.collectFields || template.collectFields || DEFAULT_FIELDS
-    ) || (source.fieldConfig || source.collectFields || template.collectFields || DEFAULT_FIELDS);
+    const normalizedFields =
+      formModule().normalizeAdminFields?.(source.fieldConfig || source.collectFields || template.collectFields || DEFAULT_FIELDS) ||
+      source.fieldConfig ||
+      source.collectFields ||
+      template.collectFields ||
+      DEFAULT_FIELDS;
     const normalizedData = snapshotToTemplateData({
       ...source,
       fieldConfig: normalizedFields,
@@ -259,19 +266,21 @@
     });
     let saved = record;
     if (api.getAdminToken?.()) {
-      saved = normalizeTemplateRecord(overwriteId
-        ? await api.adminPut(`/api/templates/${overwriteId}`, {
-            name,
-            category: record.category,
-            visibility: record.visibility,
-            data: record.data,
-          })
-        : await api.adminPost('/api/templates', {
-            name,
-            category: record.category,
-            visibility: record.visibility,
-            data: record.data,
-          }));
+      saved = normalizeTemplateRecord(
+        overwriteId
+          ? await api.adminPut(`/api/templates/${overwriteId}`, {
+              name,
+              category: record.category,
+              visibility: record.visibility,
+              data: record.data,
+            })
+          : await api.adminPost('/api/templates', {
+              name,
+              category: record.category,
+              visibility: record.visibility,
+              data: record.data,
+            })
+      );
     }
     persistTemplates([saved, ...existing.filter((item) => item.id !== saved.id)]);
     if (!options.silent) setMessage(assignmentMessage, overwriteId ? '模板已覆盖保存' : '模板已保存', 'success');
@@ -315,7 +324,9 @@
       fieldCount: fields.length,
       requiredCount,
       fileType: formModule().getFileTypeLabel?.(data.fileType || 'document') || data.fileType || '文档/文本',
-      fileLimit: data.enableLimit ? `${data.maxFileSizeMb || 100}MB / ${Math.min(Number(data.maxFiles || 1), limits.systemMaxUploadFiles)}个` : `系统最大 ${limits.systemMaxUploadFiles} 个文件 / 单文件 ${limits.systemMaxUploadSizeMb}MB`,
+      fileLimit: data.enableLimit
+        ? `${data.maxFileSizeMb || 100}MB / ${Math.min(Number(data.maxFiles || 1), limits.systemMaxUploadFiles)}个`
+        : `系统最大 ${limits.systemMaxUploadFiles} 个文件 / 单文件 ${limits.systemMaxUploadSizeMb}MB`,
       rename: data.renameEnabled === false ? '否' : '是',
       packageMode: getDownloadStructureLabel(data.downloadStructure),
       title: data.title || template.name,
@@ -345,13 +356,17 @@
     const snapshot = getTemplateSnapshot(template);
     const existingTitle = assignmentForm?.title?.value.trim();
     const existingDeadline = assignmentForm?.deadline?.value;
-    const shouldAsk = Boolean((existingTitle && snapshot.title && existingTitle !== snapshot.title) || (existingDeadline && snapshot.deadline && existingDeadline !== snapshot.deadline));
-    const overwrite = shouldAsk ? await showConfirmDialog({
-      title: '套用模板',
-      message: '当前已填写任务标题或截止时间，是否使用模板中的标题和截止时间覆盖？',
-      confirmText: '覆盖并套用',
-      variant: 'primary',
-    }) : true;
+    const shouldAsk = Boolean(
+      (existingTitle && snapshot.title && existingTitle !== snapshot.title) || (existingDeadline && snapshot.deadline && existingDeadline !== snapshot.deadline)
+    );
+    const overwrite = shouldAsk
+      ? await showConfirmDialog({
+          title: '套用模板',
+          message: '当前已填写任务标题或截止时间，是否使用模板中的标题和截止时间覆盖？',
+          confirmText: '覆盖并套用',
+          variant: 'primary',
+        })
+      : true;
     if (!overwrite) {
       snapshot.title = assignmentForm.title.value;
       snapshot.deadline = assignmentForm.deadline.value;
@@ -384,13 +399,7 @@
   }
 
   async function openTemplateModal(mode = 'manage') {
-    const {
-      assignmentMessage,
-      templateModal,
-      templateModalTitle,
-      templateSearchInput,
-      templateCategoryFilter,
-    } = getElements();
+    const { assignmentMessage, templateModal, templateModalTitle, templateSearchInput, templateCategoryFilter } = getElements();
     templateModalMode = mode;
     if (templateModalTitle) templateModalTitle.textContent = mode === 'picker' ? '套用模板' : '模板管理';
     templateModal?.classList.remove('is-hidden');
@@ -444,7 +453,9 @@
       updateTemplateSelectionUi();
       return;
     }
-    templateManagerList.innerHTML = templates.map((template) => `
+    templateManagerList.innerHTML = templates
+      .map(
+        (template) => `
       <article class="template-list-item" data-template-id="${escapeHtml(template.id)}">
         <label class="template-item-check" aria-label="选择模板">
           <input type="checkbox" data-template-select="${escapeHtml(template.id)}" ${selectedTemplateIds.has(template.id) ? 'checked' : ''}>
@@ -463,7 +474,9 @@
           <button class="danger-outline-button compact-button" type="button" data-template-delete="${escapeHtml(template.id)}">删除</button>
         </div>
       </article>
-    `).join('');
+    `
+      )
+      .join('');
     updateTemplateSelectionUi();
   }
 
@@ -515,7 +528,10 @@
     if (!deleting.length) return;
     const ok = await showConfirmDialog({
       title: deleting.length > 1 ? '批量删除模板' : '删除模板',
-      message: deleting.length > 1 ? `确定删除选中的 ${deleting.length} 个模板吗？删除后可在回收站恢复。` : `确定删除模板“${deleting[0].name}”吗？删除后可在回收站恢复。`,
+      message:
+        deleting.length > 1
+          ? `确定删除选中的 ${deleting.length} 个模板吗？删除后可在回收站恢复。`
+          : `确定删除模板“${deleting[0].name}”吗？删除后可在回收站恢复。`,
       confirmText: '删除',
       variant: 'danger',
     });

@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
   const api = CloudNote.api || {};
   const $ = common.$ || ((selector) => document.querySelector(selector));
@@ -82,9 +82,11 @@
   }
 
   function getAssignmentUrl(assignment) {
-    return CloudNote.adminAssignmentForm?.getAssignmentUrl?.(assignment)
-      || CloudNote.adminAssignments?.getAssignmentUrl?.(assignment)
-      || common.buildAssignmentLink?.(assignment);
+    return (
+      CloudNote.adminAssignmentForm?.getAssignmentUrl?.(assignment) ||
+      CloudNote.adminAssignments?.getAssignmentUrl?.(assignment) ||
+      common.buildAssignmentLink?.(assignment)
+    );
   }
 
   function loadTemplates() {

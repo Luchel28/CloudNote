@@ -14,7 +14,9 @@ function resolveAppPath(value, fallback) {
 }
 
 function normalizeBaseUrl(value) {
-  return String(value || '').trim().replace(/\/+$/, '');
+  return String(value || '')
+    .trim()
+    .replace(/\/+$/, '');
 }
 
 function resolveAdminPassword() {

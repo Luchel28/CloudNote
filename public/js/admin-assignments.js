@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
   const api = CloudNote.api || {};
   const $ = common.$ || ((selector) => document.querySelector(selector));
@@ -39,19 +39,23 @@
   }
 
   function getConstants() {
-    return formModule().constants || {
-      FILE_TYPE_EXTENSION_MAP: {
-        document: ['doc', 'docx', 'pdf', 'txt', 'xls', 'xlsx', 'ppt', 'pptx'],
-      },
-    };
+    return (
+      formModule().constants || {
+        FILE_TYPE_EXTENSION_MAP: {
+          document: ['doc', 'docx', 'pdf', 'txt', 'xls', 'xlsx', 'ppt', 'pptx'],
+        },
+      }
+    );
   }
 
   function getRuntime() {
-    return CloudNote.adminRuntime || {
-      publicBaseUrl: window.location.origin,
-      systemMaxUploadSizeMb: 500,
-      systemMaxUploadFiles: 20,
-    };
+    return (
+      CloudNote.adminRuntime || {
+        publicBaseUrl: window.location.origin,
+        systemMaxUploadSizeMb: 500,
+        systemMaxUploadFiles: 20,
+      }
+    );
   }
 
   function getElements() {
@@ -88,11 +92,13 @@
 
   function getTaskStatusLabel(item = {}) {
     const status = getTaskStatus(item);
-    return {
-      ongoing: '进行中',
-      completed: '已完成',
-      deleted: '已删除',
-    }[status] || getStatusLabel(normalizeTaskStatus(item));
+    return (
+      {
+        ongoing: '进行中',
+        completed: '已完成',
+        deleted: '已删除',
+      }[status] || getStatusLabel(normalizeTaskStatus(item))
+    );
   }
 
   function getAssignmentUrl(assignment) {
@@ -114,7 +120,9 @@
     const start = Math.max(1, current - 2);
     const end = Math.min(total, start + 4);
     for (let index = start; index <= end; index += 1) {
-      pages.push(`<button class="pagination-page ${index === current ? 'is-active' : ''}" type="button" data-page-kind="assignments" data-page-number="${index}" ${index === current ? 'aria-current="page"' : ''}>${index}</button>`);
+      pages.push(
+        `<button class="pagination-page ${index === current ? 'is-active' : ''}" type="button" data-page-kind="assignments" data-page-number="${index}" ${index === current ? 'aria-current="page"' : ''}>${index}</button>`
+      );
     }
     container.innerHTML = `
       <button class="secondary-button compact-button pagination-arrow" type="button" data-page-kind="assignments" data-page-action="prev" ${current <= 1 ? 'disabled' : ''}>上一页</button>
@@ -141,7 +149,10 @@
     const taskStatus = getTaskStatus(item);
     const isDeleted = taskStatus === 'deleted';
     const url = getAssignmentUrl(item);
-    const extensions = Array.isArray(item.allowedExtensions) && item.allowedExtensions.length ? item.allowedExtensions : FILE_TYPE_EXTENSION_MAP[item.fileType || 'document'] || [];
+    const extensions =
+      Array.isArray(item.allowedExtensions) && item.allowedExtensions.length
+        ? item.allowedExtensions
+        : FILE_TYPE_EXTENSION_MAP[item.fileType || 'document'] || [];
     const fileRule = item.enableLimit
       ? `${Math.min(Number(item.maxFiles || 1), runtime.systemMaxUploadFiles || 20)} 个 / ${Math.min(Number(item.maxFileSizeMb || runtime.systemMaxUploadSizeMb || 500), runtime.systemMaxUploadSizeMb || 500)}MB`
       : `系统最大 ${runtime.systemMaxUploadFiles || 20} 个文件 / 单文件 ${runtime.systemMaxUploadSizeMb || 500}MB`;
@@ -210,10 +221,7 @@
   async function renderAssignmentStats() {
     const { assignmentStats } = getElements();
     if (!assignmentStats || !api.getAdminToken?.()) return;
-    const [activeItems, deletedItems] = await Promise.all([
-      fetchAssignmentPages(''),
-      fetchAssignmentPages('deleted'),
-    ]);
+    const [activeItems, deletedItems] = await Promise.all([fetchAssignmentPages(''), fetchAssignmentPages('deleted')]);
     const counts = { all: activeItems.length + deletedItems.length, ongoing: 0, completed: 0, deleted: deletedItems.length };
     activeItems.forEach((item) => {
       const status = getTaskStatus(item);
@@ -226,7 +234,9 @@
       { key: 'completed', title: '已完成', value: counts.completed, desc: '已截止的任务', icon: 'icon-yiwancheng', tone: 'purple' },
       { key: 'deleted', title: '已删除', value: counts.deleted, desc: '已删除的任务', icon: 'icon-yishanchu', tone: 'red' },
     ];
-    assignmentStats.innerHTML = cards.map((card) => `
+    assignmentStats.innerHTML = cards
+      .map(
+        (card) => `
       <button class="assignment-stat-card stat-${card.tone}" type="button" data-stat-status="${card.key}">
         <span class="stat-icon"><i class="iconfont ${card.icon}"></i></span>
         <span class="stat-copy">
@@ -235,7 +245,9 @@
           <small>${card.desc}</small>
         </span>
       </button>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   async function load() {
@@ -250,7 +262,9 @@
       assignmentMessage,
     } = getElements();
     if (!assignmentList || !api.getAdminToken?.()) return null;
-    await formModule().loadPublicConfig?.().catch?.(() => {});
+    await formModule()
+      .loadPublicConfig?.()
+      .catch?.(() => {});
     const statusValue = assignmentStatusFilter?.value || '';
     assignmentPerPage = Number(assignmentPerPageSelect?.value || assignmentPerPage || 10);
     assignmentList.innerHTML = '<div class="empty-card loading-card">正在加载任务...</div>';
@@ -269,12 +283,14 @@
         render(data.items);
       } else {
         const hasFilter = Boolean(statusValue || assignmentSearchInput?.value);
-        assignmentList.innerHTML = hasFilter ? `
+        assignmentList.innerHTML = hasFilter
+          ? `
           <div class="empty-card assignment-empty-state">
             <strong>未找到匹配的任务</strong>
             <p>换个关键词或清空筛选后再试。</p>
             <button class="secondary-button compact-button" type="button" data-clear-assignment-filters>清空筛选</button>
-          </div>` : `
+          </div>`
+          : `
           <div class="empty-card assignment-empty-state">
             <strong>暂无任务，点击创建新任务开始收集作业</strong>
             <button class="primary-button compact-button" type="button" data-admin-section-shortcut="create">创建新任务</button>
@@ -352,12 +368,15 @@
   async function deleteAssignment(assignmentId, submissionCount = 0) {
     const { assignmentMessage } = getElements();
     const count = Number(submissionCount || 0);
-    if (!await showConfirmDialog({
-      title: '删除任务',
-      message: count ? `该任务有 ${count} 条提交，删除后会移入回收站并同步处理相关文件。继续？` : '确定删除这个任务吗？删除后可在回收站恢复。',
-      confirmText: '删除',
-      variant: 'danger',
-    })) return;
+    if (
+      !(await showConfirmDialog({
+        title: '删除任务',
+        message: count ? `该任务有 ${count} 条提交，删除后会移入回收站并同步处理相关文件。继续？` : '确定删除这个任务吗？删除后可在回收站恢复。',
+        confirmText: '删除',
+        variant: 'danger',
+      }))
+    )
+      return;
     try {
       let response = await fetch(`/api/assignments/${assignmentId}`, { method: 'DELETE', headers: api.getAdminHeaders?.() || {} });
       let result = await response.json();
@@ -400,15 +419,8 @@
   }
 
   function bindEvents() {
-    const {
-      assignmentList,
-      assignmentStatusFilter,
-      assignmentSearchInput,
-      assignmentSortSelect,
-      assignmentPerPageSelect,
-      assignmentStats,
-      assignmentMessage,
-    } = getElements();
+    const { assignmentList, assignmentStatusFilter, assignmentSearchInput, assignmentSortSelect, assignmentPerPageSelect, assignmentStats, assignmentMessage } =
+      getElements();
 
     assignmentList?.addEventListener('click', async (event) => {
       const copyButton = event.target.closest('[data-copy-url]');
@@ -441,14 +453,21 @@
           await editAssignment(editButton.dataset.editAssignment, JSON.parse(editButton.dataset.assignmentJson));
           switchAdminSection('create');
         }
-        if (downloadButton) await api.adminDownloadBlob?.(`/api/download-all?assignmentId=${downloadButton.dataset.downloadAssignment}`, `cloudnote-${downloadButton.dataset.assignmentTitle || 'assignment'}.zip`);
+        if (downloadButton)
+          await api.adminDownloadBlob?.(
+            `/api/download-all?assignmentId=${downloadButton.dataset.downloadAssignment}`,
+            `cloudnote-${downloadButton.dataset.assignmentTitle || 'assignment'}.zip`
+          );
         if (deleteButton) await deleteAssignment(deleteButton.dataset.deleteAssignment, deleteButton.dataset.submissionCount);
       } catch (error) {
         setMessage(assignmentMessage, error.message, 'error');
       }
     });
 
-    assignmentStatusFilter?.addEventListener('change', () => { assignmentPage = 1; load(); });
+    assignmentStatusFilter?.addEventListener('change', () => {
+      assignmentPage = 1;
+      load();
+    });
     assignmentSearchInput?.addEventListener('input', () => {
       window.clearTimeout(assignmentSearchTimer);
       assignmentSearchTimer = window.setTimeout(() => {
@@ -456,8 +475,14 @@
         load();
       }, 300);
     });
-    assignmentSortSelect?.addEventListener('change', () => { assignmentPage = 1; load(); });
-    assignmentPerPageSelect?.addEventListener('change', () => { assignmentPage = 1; load(); });
+    assignmentSortSelect?.addEventListener('change', () => {
+      assignmentPage = 1;
+      load();
+    });
+    assignmentPerPageSelect?.addEventListener('change', () => {
+      assignmentPage = 1;
+      load();
+    });
     assignmentStats?.addEventListener('click', (event) => {
       const card = event.target.closest('[data-stat-status]');
       if (!card || !assignmentStatusFilter) return;

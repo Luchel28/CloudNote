@@ -1,9 +1,5 @@
 const { allDb, getDb } = require('../db');
-const {
-  addEffectiveStatusFilter,
-  getEffectiveStatus,
-  normalizeStatus,
-} = require('../utils/assignmentUtils');
+const { addEffectiveStatusFilter, getEffectiveStatus, normalizeStatus } = require('../utils/assignmentUtils');
 
 async function getStatistics({ assignmentId = null, status = '', dateFrom = '', dateTo = '' } = {}) {
   const whereParts = ["a.status != 'deleted'"];

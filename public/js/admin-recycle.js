@@ -1,18 +1,20 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
   const api = CloudNote.api || {};
   const $ = common.$ || ((selector) => document.querySelector(selector));
   const escapeHtml = common.escapeHtml || ((value) => String(value ?? ''));
-  const parseJson = common.parseJson || ((value, fallback) => {
-    try {
-      return value ? JSON.parse(value) : fallback;
-    } catch {
-      return fallback;
-    }
-  });
+  const parseJson =
+    common.parseJson ||
+    ((value, fallback) => {
+      try {
+        return value ? JSON.parse(value) : fallback;
+      } catch {
+        return fallback;
+      }
+    });
   const setMessage = common.setMessage || (() => {});
   const formatTime = common.formatTime || common.formatDateTime || ((value) => value || '-');
   const formatSize = common.formatSize || common.formatFileSize || ((size) => `${size || 0} B`);
@@ -70,18 +72,26 @@
   }
 
   function getCategoryLabel(category) {
-    return getHooks().getCategoryLabel?.(category) || {
-      course: '课程作业',
-      exam: '测试收集',
-      material: '材料归集',
-    }[category] || '课程作业';
+    return (
+      getHooks().getCategoryLabel?.(category) ||
+      {
+        course: '课程作业',
+        exam: '测试收集',
+        material: '材料归集',
+      }[category] ||
+      '课程作业'
+    );
   }
 
   function getVisibilityLabel(visibility) {
-    return getHooks().getVisibilityLabel?.(visibility) || {
-      private: '仅自己可见',
-      class: '班级共享',
-    }[visibility] || '仅自己可见';
+    return (
+      getHooks().getVisibilityLabel?.(visibility) ||
+      {
+        private: '仅自己可见',
+        class: '班级共享',
+      }[visibility] ||
+      '仅自己可见'
+    );
   }
 
   function updateRecycleSelectionUi() {
@@ -104,7 +114,9 @@
     const start = Math.max(1, current - 2);
     const end = Math.min(total, start + 4);
     for (let index = start; index <= end; index += 1) {
-      pages.push(`<button class="pagination-page ${index === current ? 'is-active' : ''}" type="button" data-page-kind="recycle" data-page-number="${index}" ${index === current ? 'aria-current="page"' : ''}>${index}</button>`);
+      pages.push(
+        `<button class="pagination-page ${index === current ? 'is-active' : ''}" type="button" data-page-kind="recycle" data-page-number="${index}" ${index === current ? 'aria-current="page"' : ''}>${index}</button>`
+      );
     }
     container.innerHTML = `
       <button class="secondary-button compact-button pagination-arrow" type="button" data-page-kind="recycle" data-page-action="prev" ${current <= 1 ? 'disabled' : ''}>上一页</button>
@@ -134,14 +146,16 @@
       updateRecycleSelectionUi();
       return;
     }
-    recycleTable.innerHTML = items.map((item) => {
-      const key = recycleItemKey(item.type, item.id);
-      const checked = selectedItems.has(key) ? 'checked' : '';
-      const typeLabel = item.type === 'task' ? '任务' : item.type === 'submission' ? '提交' : item.type === 'template' ? '模板' : '文件';
-      const typeClass = item.type === 'task' ? 'type-task' : item.type === 'submission' ? 'type-submission' : item.type === 'template' ? 'type-template' : 'type-file';
-      const restoreDisabled = item.recoverable === false;
-      const restoreReason = item.restoreDisabledReason || (restoreDisabled ? '该内容暂不能恢复' : '');
-      return `
+    recycleTable.innerHTML = items
+      .map((item) => {
+        const key = recycleItemKey(item.type, item.id);
+        const checked = selectedItems.has(key) ? 'checked' : '';
+        const typeLabel = item.type === 'task' ? '任务' : item.type === 'submission' ? '提交' : item.type === 'template' ? '模板' : '文件';
+        const typeClass =
+          item.type === 'task' ? 'type-task' : item.type === 'submission' ? 'type-submission' : item.type === 'template' ? 'type-template' : 'type-file';
+        const restoreDisabled = item.recoverable === false;
+        const restoreReason = item.restoreDisabledReason || (restoreDisabled ? '该内容暂不能恢复' : '');
+        return `
         <tr>
           <td><input type="checkbox" data-recycle-select="${key}" data-recycle-type="${item.type}" data-recycle-id="${item.id}" data-recycle-recoverable="${restoreDisabled ? 'false' : 'true'}" data-recycle-restore-reason="${escapeHtml(restoreReason)}" ${checked}></td>
           <td><span class="type-pill ${typeClass}">${typeLabel}</span></td>
@@ -164,7 +178,8 @@
           </td>
         </tr>
       `;
-    }).join('');
+      })
+      .join('');
     updateRecycleSelectionUi();
   }
 
@@ -207,14 +222,19 @@
 
     const hooks = getHooks();
     const localRecycleMap = new Map(getLocalRecycleItems().map((item) => [String(item.id), item]));
-    const normalizedItems = items.map((item) => (item.type === 'template' && localRecycleMap.has(String(item.id)) ? { ...item, ...localRecycleMap.get(String(item.id)) } : item));
+    const normalizedItems = items.map((item) =>
+      item.type === 'template' && localRecycleMap.has(String(item.id)) ? { ...item, ...localRecycleMap.get(String(item.id)) } : item
+    );
     const templateItems = normalizedItems.filter((item) => item.type === 'template' && item.template);
     const serverItems = normalizedItems.filter((item) => item.type !== 'template' || !item.template);
     let message = '';
     if (templateItems.length) {
       const recycleItems = getLocalRecycleItems();
       const restoreIds = new Set(templateItems.map((item) => String(item.id)));
-      const restoredTemplates = recycleItems.filter((item) => restoreIds.has(String(item.id))).map((item) => item.template).filter(Boolean);
+      const restoredTemplates = recycleItems
+        .filter((item) => restoreIds.has(String(item.id)))
+        .map((item) => item.template)
+        .filter(Boolean);
       const normalizeTemplateRecord = hooks.normalizeTemplateRecord || ((template) => template);
       const getStoredTemplates = hooks.getStoredTemplates || (() => []);
       hooks.persistTemplates?.([...restoredTemplates.map(normalizeTemplateRecord), ...getStoredTemplates()]);
@@ -235,7 +255,9 @@
     const { recycleMessage } = getElements();
     if (!items.length) return;
     const localRecycleMap = new Map(getLocalRecycleItems().map((item) => [String(item.id), item]));
-    const normalizedItems = items.map((item) => (item.type === 'template' && localRecycleMap.has(String(item.id)) ? { ...item, ...localRecycleMap.get(String(item.id)) } : item));
+    const normalizedItems = items.map((item) =>
+      item.type === 'template' && localRecycleMap.has(String(item.id)) ? { ...item, ...localRecycleMap.get(String(item.id)) } : item
+    );
     const templateItems = normalizedItems.filter((item) => item.type === 'template' && item.template);
     const serverItems = normalizedItems.filter((item) => item.type !== 'template' || !item.template);
     let message = '';
@@ -340,7 +362,7 @@
           await restoreRecycleItems([readRecycleItemFromDataset(restoreButton.dataset)]);
         }
         if (purgeButton) {
-          if (!await showConfirmDialog({ title: '彻底删除', message: '彻底删除后无法恢复，确定继续？', confirmText: '彻底删除', variant: 'danger' })) return;
+          if (!(await showConfirmDialog({ title: '彻底删除', message: '彻底删除后无法恢复，确定继续？', confirmText: '彻底删除', variant: 'danger' }))) return;
           await purgeRecycleItems([readRecycleItemFromDataset(purgeButton.dataset)]);
         }
       } catch (error) {
@@ -353,7 +375,8 @@
         setMessage(recycleMessage, '请先选择内容', 'error');
         return;
       }
-      if (!await showConfirmDialog({ title: '批量恢复', message: `确定恢复所选 ${items.length} 项内容吗？`, confirmText: '恢复', variant: 'success' })) return;
+      if (!(await showConfirmDialog({ title: '批量恢复', message: `确定恢复所选 ${items.length} 项内容吗？`, confirmText: '恢复', variant: 'success' })))
+        return;
       restoreRecycleItems(items).catch((error) => setMessage(recycleMessage, error.message, 'error'));
     });
     recycleBatchPurge?.addEventListener('click', async () => {
@@ -362,11 +385,12 @@
         setMessage(recycleMessage, '请先选择内容', 'error');
         return;
       }
-      if (!await showConfirmDialog({ title: '批量彻底删除', message: '彻底删除所选内容后无法恢复，确定继续？', confirmText: '彻底删除', variant: 'danger' })) return;
+      if (!(await showConfirmDialog({ title: '批量彻底删除', message: '彻底删除所选内容后无法恢复，确定继续？', confirmText: '彻底删除', variant: 'danger' })))
+        return;
       purgeRecycleItems(items).catch((error) => setMessage(recycleMessage, error.message, 'error'));
     });
     emptyRecycleButton?.addEventListener('click', async () => {
-      if (!await showConfirmDialog({ title: '清空回收站', message: '确定清空回收站？这一步无法撤销。', confirmText: '清空', variant: 'danger' })) return;
+      if (!(await showConfirmDialog({ title: '清空回收站', message: '确定清空回收站？这一步无法撤销。', confirmText: '清空', variant: 'danger' }))) return;
       try {
         const result = await api.adminDelete('/api/recycle-bin');
         persistLocalRecycleItems([]);

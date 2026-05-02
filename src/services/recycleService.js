@@ -2,14 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { RECYCLE_RETENTION_DAYS, UPLOAD_DIR } = require('../config');
-const {
-  allDb,
-  beginTransaction,
-  commitTransaction,
-  getDb,
-  rollbackTransaction,
-  runDb,
-} = require('../db');
+const { allDb, beginTransaction, commitTransaction, getDb, rollbackTransaction, runDb } = require('../db');
 const { normalizeStatus } = require('../utils/assignmentUtils');
 const { removeStoredFile } = require('../utils/fileUtils');
 const { msg } = require('../utils/responseUtils');
@@ -53,8 +46,16 @@ async function hardDeleteSubmissionWithFiles(submissionId) {
 async function softDeleteSubmissionWithFiles(submissionId, deletedAt = new Date().toISOString(), source = 'submission') {
   await beginTransaction();
   try {
-    const result = await runDb('UPDATE submissions SET deleted_at = ?, delete_source = ? WHERE id = ? AND deleted_at IS NULL', [deletedAt, source, submissionId]);
-    await runDb('UPDATE submission_files SET deleted_at = ?, delete_source = ? WHERE submission_id = ? AND deleted_at IS NULL', [deletedAt, source, submissionId]);
+    const result = await runDb('UPDATE submissions SET deleted_at = ?, delete_source = ? WHERE id = ? AND deleted_at IS NULL', [
+      deletedAt,
+      source,
+      submissionId,
+    ]);
+    await runDb('UPDATE submission_files SET deleted_at = ?, delete_source = ? WHERE submission_id = ? AND deleted_at IS NULL', [
+      deletedAt,
+      source,
+      submissionId,
+    ]);
     await commitTransaction();
     return result;
   } catch (error) {
@@ -64,18 +65,24 @@ async function softDeleteSubmissionWithFiles(submissionId, deletedAt = new Date(
 }
 
 async function hardDeleteAssignment(assignmentId) {
-  const files = await allDb(`
+  const files = await allDb(
+    `
     SELECT sf.stored_filename
     FROM submission_files sf
     WHERE sf.assignment_id = ?
        OR sf.submission_id IN (SELECT id FROM submissions WHERE assignment_id = ?)
     UNION
     SELECT stored_filename FROM submissions WHERE assignment_id = ? AND stored_filename IS NOT NULL AND stored_filename != ''
-  `, [assignmentId, assignmentId, assignmentId]);
+  `,
+    [assignmentId, assignmentId, assignmentId]
+  );
   await beginTransaction();
   let deleted = false;
   try {
-    await runDb('DELETE FROM submission_files WHERE assignment_id = ? OR submission_id IN (SELECT id FROM submissions WHERE assignment_id = ?)', [assignmentId, assignmentId]);
+    await runDb('DELETE FROM submission_files WHERE assignment_id = ? OR submission_id IN (SELECT id FROM submissions WHERE assignment_id = ?)', [
+      assignmentId,
+      assignmentId,
+    ]);
     await runDb('DELETE FROM submissions WHERE assignment_id = ?', [assignmentId]);
     const result = await runDb('DELETE FROM assignments WHERE id = ?', [assignmentId]);
     deleted = result.changes > 0;
@@ -105,9 +112,7 @@ async function hardDeleteFile(fileId) {
 
 function recycleRetention(deletedAt) {
   const deletedTime = new Date(deletedAt || Date.now()).getTime();
-  const ageDays = Number.isFinite(deletedTime)
-    ? Math.max(0, Math.floor((Date.now() - deletedTime) / 86400000))
-    : 0;
+  const ageDays = Number.isFinite(deletedTime) ? Math.max(0, Math.floor((Date.now() - deletedTime) / 86400000)) : 0;
   return {
     ageDays,
     remainingDays: Math.max(0, RECYCLE_RETENTION_DAYS - ageDays),
@@ -289,9 +294,7 @@ async function getRecycleBinData({ type = 'all', search = '', sort = 'recent', p
       const deleteSource = row.deleteSource || 'file';
       const assignmentDeleted = row.assignmentStatus === 'deleted';
       const taskScoped = deleteSource === 'task' || assignmentDeleted;
-      const restoreDisabledReason = taskScoped
-        ? '请先恢复所属任务'
-        : (!fs.existsSync(filePath) ? '文件已不存在，不能恢复' : '');
+      const restoreDisabledReason = taskScoped ? '请先恢复所属任务' : !fs.existsSync(filePath) ? '文件已不存在，不能恢复' : '';
       items.push({
         type: 'file',
         id: row.id,
@@ -336,9 +339,17 @@ async function getRecycleBinData({ type = 'all', search = '', sort = 'recent', p
     });
   }
 
-  const keyword = String(search || '').trim().toLowerCase();
+  const keyword = String(search || '')
+    .trim()
+    .toLowerCase();
   let filtered = keyword
-    ? items.filter((item) => [item.name, item.origin, item.submitter, item.homeworkTitle].some((value) => String(value || '').toLowerCase().includes(keyword)))
+    ? items.filter((item) =>
+        [item.name, item.origin, item.submitter, item.homeworkTitle].some((value) =>
+          String(value || '')
+            .toLowerCase()
+            .includes(keyword)
+        )
+      )
     : items;
 
   const sorters = {
@@ -352,10 +363,14 @@ async function getRecycleBinData({ type = 'all', search = '', sort = 'recent', p
 
   const deletedTaskCount = await getDb("SELECT COUNT(*) AS total FROM assignments WHERE status = 'deleted'").then((row) => Number(row.total || 0));
   const deletedSubmissionCount = await getDb('SELECT COUNT(*) AS total FROM submissions WHERE deleted_at IS NOT NULL').then((row) => Number(row.total || 0));
-  const deletedTemplateCount = await getDb('SELECT COUNT(*) AS total FROM assignment_templates WHERE deleted_at IS NOT NULL').then((row) => Number(row.total || 0));
+  const deletedTemplateCount = await getDb('SELECT COUNT(*) AS total FROM assignment_templates WHERE deleted_at IS NOT NULL').then((row) =>
+    Number(row.total || 0)
+  );
   const allDeletedFiles = deletedFilesForSummary.length
     ? deletedFilesForSummary
-    : await allDb("SELECT file_size AS size, stored_filename AS storedFilename FROM submission_files WHERE deleted_at IS NOT NULL AND COALESCE(delete_source, 'file') != 'submission'");
+    : await allDb(
+        "SELECT file_size AS size, stored_filename AS storedFilename FROM submission_files WHERE deleted_at IS NOT NULL AND COALESCE(delete_source, 'file') != 'submission'"
+      );
   const summary = {
     deletedTasks: deletedTaskCount,
     deletedSubmissions: deletedSubmissionCount,
@@ -399,9 +414,19 @@ async function restoreAssignment(assignmentId) {
   const status = normalizeStatus(assignment.previous_status || 'ongoing');
   await beginTransaction();
   try {
-    await runDb('UPDATE assignments SET status = ?, deleted_at = NULL, delete_source = NULL, updated_at = ? WHERE id = ?', [status === 'deleted' ? 'ongoing' : status, now, assignmentId]);
-    await runDb("UPDATE submissions SET deleted_at = NULL, delete_source = NULL WHERE assignment_id = ? AND deleted_at IS NOT NULL AND delete_source = 'task'", [assignmentId]);
-    await runDb("UPDATE submission_files SET deleted_at = NULL, delete_source = NULL WHERE assignment_id = ? AND deleted_at IS NOT NULL AND delete_source = 'task'", [assignmentId]);
+    await runDb('UPDATE assignments SET status = ?, deleted_at = NULL, delete_source = NULL, updated_at = ? WHERE id = ?', [
+      status === 'deleted' ? 'ongoing' : status,
+      now,
+      assignmentId,
+    ]);
+    await runDb(
+      "UPDATE submissions SET deleted_at = NULL, delete_source = NULL WHERE assignment_id = ? AND deleted_at IS NOT NULL AND delete_source = 'task'",
+      [assignmentId]
+    );
+    await runDb(
+      "UPDATE submission_files SET deleted_at = NULL, delete_source = NULL WHERE assignment_id = ? AND deleted_at IS NOT NULL AND delete_source = 'task'",
+      [assignmentId]
+    );
     await commitTransaction();
     return true;
   } catch (error) {
@@ -425,7 +450,10 @@ async function restoreSubmission(submissionId) {
   await beginTransaction();
   try {
     await runDb('UPDATE submissions SET deleted_at = NULL, delete_source = NULL WHERE id = ?', [submissionId]);
-    await runDb("UPDATE submission_files SET deleted_at = NULL, delete_source = NULL WHERE submission_id = ? AND deleted_at IS NOT NULL AND delete_source = 'submission'", [submissionId]);
+    await runDb(
+      "UPDATE submission_files SET deleted_at = NULL, delete_source = NULL WHERE submission_id = ? AND deleted_at IS NOT NULL AND delete_source = 'submission'",
+      [submissionId]
+    );
     await commitTransaction();
     return true;
   } catch (error) {
@@ -473,7 +501,10 @@ async function restoreFile(fileId) {
 }
 
 async function restoreTemplate(templateId) {
-  const result = await runDb('UPDATE assignment_templates SET deleted_at = NULL, delete_source = NULL, updated_at = ? WHERE id = ? AND deleted_at IS NOT NULL', [new Date().toISOString(), templateId]);
+  const result = await runDb(
+    'UPDATE assignment_templates SET deleted_at = NULL, delete_source = NULL, updated_at = ? WHERE id = ? AND deleted_at IS NOT NULL',
+    [new Date().toISOString(), templateId]
+  );
   return result.changes > 0;
 }
 

@@ -18,13 +18,15 @@ function registerRecycleRoutes(app) {
       const page = parsePage(req.query.page);
       const perPage = parsePerPage(req.query.perPage, 20, 100);
       const type = ['task', 'submission', 'file', 'template'].includes(req.query.type) ? req.query.type : 'all';
-      res.json(await getRecycleBinData({
-        type,
-        search: req.query.search || '',
-        sort: req.query.sort || 'recent',
-        page,
-        perPage,
-      }));
+      res.json(
+        await getRecycleBinData({
+          type,
+          search: req.query.search || '',
+          sort: req.query.sort || 'recent',
+          page,
+          perPage,
+        })
+      );
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: msg('\u8bfb\u53d6\u56de\u6536\u7ad9\u5931\u8d25') });
@@ -37,13 +39,14 @@ function registerRecycleRoutes(app) {
       if (!items.length) return res.status(400).json({ message: msg('\u8bf7\u9009\u62e9\u8981\u6062\u590d\u7684\u5185\u5bb9') });
       let restored = 0;
       for (const item of items) {
-        const ok = item.type === 'task'
-          ? await restoreAssignment(item.id)
-          : item.type === 'submission'
-            ? await restoreSubmission(item.id)
-            : item.type === 'template'
-              ? await restoreTemplate(item.id)
-              : await restoreFile(item.id);
+        const ok =
+          item.type === 'task'
+            ? await restoreAssignment(item.id)
+            : item.type === 'submission'
+              ? await restoreSubmission(item.id)
+              : item.type === 'template'
+                ? await restoreTemplate(item.id)
+                : await restoreFile(item.id);
         if (ok) restored += 1;
       }
       res.json({ message: msg(`\u5df2\u6062\u590d ${restored} \u9879`), restored });

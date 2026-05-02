@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
   const api = CloudNote.api || {};
   const $ = common.$ || ((selector) => document.querySelector(selector));
@@ -85,7 +85,9 @@
     const start = Math.max(1, current - 2);
     const end = Math.min(total, start + 4);
     for (let index = start; index <= end; index += 1) {
-      pages.push(`<button class="pagination-page ${index === current ? 'is-active' : ''}" type="button" data-page-kind="submissions" data-page-number="${index}" ${index === current ? 'aria-current="page"' : ''}>${index}</button>`);
+      pages.push(
+        `<button class="pagination-page ${index === current ? 'is-active' : ''}" type="button" data-page-kind="submissions" data-page-number="${index}" ${index === current ? 'aria-current="page"' : ''}>${index}</button>`
+      );
     }
     container.innerHTML = `
       <button class="secondary-button compact-button pagination-arrow" type="button" data-page-kind="submissions" data-page-action="prev" ${current <= 1 ? 'disabled' : ''}>上一页</button>
@@ -95,13 +97,7 @@
   }
 
   function getListParams() {
-    const {
-      submissionSearchInput,
-      submissionStatusFilter,
-      submissionStartDate,
-      submissionEndDate,
-      submissionSortSelect,
-    } = getElements();
+    const { submissionSearchInput, submissionStatusFilter, submissionStartDate, submissionEndDate, submissionSortSelect } = getElements();
     const params = new URLSearchParams({ page: submissionPage, perPage: 20 });
     if (currentAssignmentFilter) params.set('assignmentId', currentAssignmentFilter);
     if (submissionSearchInput?.value) params.set('search', submissionSearchInput.value);
@@ -113,13 +109,7 @@
   }
 
   function getExportPayload() {
-    const {
-      submissionSearchInput,
-      submissionStatusFilter,
-      submissionStartDate,
-      submissionEndDate,
-      submissionSortSelect,
-    } = getElements();
+    const { submissionSearchInput, submissionStatusFilter, submissionStartDate, submissionEndDate, submissionSortSelect } = getElements();
     return {
       assignmentId: currentAssignmentFilter,
       search: submissionSearchInput?.value || '',
@@ -152,40 +142,48 @@
           <th>提交文件</th><th>上传时间</th><th>是否逾期</th><th>删除</th>
         </tr>`;
     }
-    submissionTable.innerHTML = items.map((item, index) => `
+    submissionTable.innerHTML = items
+      .map(
+        (item, index) => `
       <tr>
         <td>${(page - 1) * perPage + index + 1}</td>
         <td class="submission-assignment-cell" title="${escapeHtml(item.assignmentTitle || '')}">${escapeHtml(item.assignmentTitle || '未分配任务')}</td>
-        ${dynamicKeys.map((key) => {
-          const value = item.submitterData?.[key] ?? '';
-          return `<td class="submission-dynamic-cell" title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
-        }).join('')}
+        ${dynamicKeys
+          .map((key) => {
+            const value = item.submitterData?.[key] ?? '';
+            return `<td class="submission-dynamic-cell" title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
+          })
+          .join('')}
         <td class="submission-files-cell">
           <div class="file-action-list submission-file-actions">
-            ${(item.files || []).length ? item.files.map((file) => `
+            ${
+              (item.files || []).length
+                ? item.files
+                    .map(
+                      (file) => `
               <span class="file-action-chip">
                 <span>${escapeHtml(file.originalFilename)}</span>
                 <button class="icon-mini-button" type="button" data-file-download-id="${file.id}" data-file-name="${escapeHtml(file.originalFilename)}" title="下载文件">下载</button>
                 <button class="icon-mini-button danger-mini" type="button" data-file-delete-id="${file.id}" title="删除文件">删除</button>
               </span>
-            `).join('') : escapeHtml(item.originalFilename || '')}
+            `
+                    )
+                    .join('')
+                : escapeHtml(item.originalFilename || '')
+            }
           </div>
         </td>
         <td>${formatTime(item.uploadTime)}</td>
         <td><span class="status-badge ${item.isLate ? 'status-deleted' : 'status-ongoing'}">${item.isLate ? '是' : '否'}</span></td>
         <td><button class="danger-button compact-button" type="button" data-delete-id="${item.id}">删除记录</button></td>
       </tr>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   async function load() {
-    const {
-      submissionTable,
-      submissionPagination,
-      recordCount,
-      currentFilter,
-      adminMessage,
-    } = getElements();
+    const { submissionTable, submissionPagination, recordCount, currentFilter, adminMessage } = getElements();
     if (!submissionTable || !api.getAdminToken?.()) return;
     const params = getListParams();
     try {
@@ -222,13 +220,7 @@
   }
 
   function clearAssignmentFilter() {
-    const {
-      submissionAssignmentFilter,
-      submissionStatusFilter,
-      submissionSearchInput,
-      submissionStartDate,
-      submissionEndDate,
-    } = getElements();
+    const { submissionAssignmentFilter, submissionStatusFilter, submissionSearchInput, submissionStartDate, submissionEndDate } = getElements();
     currentAssignmentFilter = null;
     currentAssignmentTitle = '';
     submissionPage = 1;
@@ -259,17 +251,18 @@
   async function downloadAll() {
     const { adminMessage } = getElements();
     const query = currentAssignmentFilter ? `?assignmentId=${currentAssignmentFilter}` : '';
-    return api.adminDownloadBlob(`/api/download-all${query}`, 'cloudnote-submissions.zip')
-      .catch((error) => setMessage(adminMessage, error.message, 'error'));
+    return api.adminDownloadBlob(`/api/download-all${query}`, 'cloudnote-submissions.zip').catch((error) => setMessage(adminMessage, error.message, 'error'));
   }
 
   async function exportCsv() {
     const { adminMessage } = getElements();
-    return api.adminDownloadBlob('/api/export-submissions', 'cloudnote-submissions.csv', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(getExportPayload()),
-    }).catch((error) => setMessage(adminMessage, error.message, 'error'));
+    return api
+      .adminDownloadBlob('/api/export-submissions', 'cloudnote-submissions.csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(getExportPayload()),
+      })
+      .catch((error) => setMessage(adminMessage, error.message, 'error'));
   }
 
   function handlePaginationButton(button) {
@@ -330,16 +323,30 @@
       const fileDeleteButton = event.target.closest('[data-file-delete-id]');
       const deleteButton = event.target.closest('[data-delete-id]');
       try {
-        if (downloadButton) await api.adminDownloadBlob(`/api/download/${downloadButton.dataset.downloadId}`, `submission-${downloadButton.dataset.downloadId}.zip`);
-        if (fileDownloadButton) await api.adminDownloadBlob(`/api/files/${fileDownloadButton.dataset.fileDownloadId}/download`, fileDownloadButton.dataset.fileName || 'cloudnote-file');
+        if (downloadButton)
+          await api.adminDownloadBlob(`/api/download/${downloadButton.dataset.downloadId}`, `submission-${downloadButton.dataset.downloadId}.zip`);
+        if (fileDownloadButton)
+          await api.adminDownloadBlob(
+            `/api/files/${fileDownloadButton.dataset.fileDownloadId}/download`,
+            fileDownloadButton.dataset.fileName || 'cloudnote-file'
+          );
         if (fileDeleteButton) {
-          if (!await showConfirmDialog({ title: '删除文件', message: '确定删除这个文件？删除后可在回收站恢复。', confirmText: '删除', variant: 'danger' })) return;
+          if (!(await showConfirmDialog({ title: '删除文件', message: '确定删除这个文件？删除后可在回收站恢复。', confirmText: '删除', variant: 'danger' })))
+            return;
           await api.adminDelete(`/api/files/${fileDeleteButton.dataset.fileDeleteId}`);
           setMessage(adminMessage, '文件已移入回收站', 'success');
           refreshAfterSubmissionChange();
         }
         if (deleteButton) {
-          if (!await showConfirmDialog({ title: '删除提交记录', message: '确定删除这条提交记录和对应文件？删除后可在回收站恢复。', confirmText: '删除', variant: 'danger' })) return;
+          if (
+            !(await showConfirmDialog({
+              title: '删除提交记录',
+              message: '确定删除这条提交记录和对应文件？删除后可在回收站恢复。',
+              confirmText: '删除',
+              variant: 'danger',
+            }))
+          )
+            return;
           await api.adminDelete(`/api/submissions/${deleteButton.dataset.deleteId}`);
           refreshAfterSubmissionChange();
         }

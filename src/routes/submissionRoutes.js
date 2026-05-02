@@ -1,10 +1,7 @@
 const { allDb, getDb } = require('../db');
 const { requireAdmin } = require('../middleware/requireAdmin');
 const { softDeleteSubmissionWithFiles } = require('../services/recycleService');
-const {
-  normalizeFieldConfig,
-  parseJson,
-} = require('../utils/assignmentUtils');
+const { normalizeFieldConfig, parseJson } = require('../utils/assignmentUtils');
 const { rowsToCsv } = require('../utils/csvUtils');
 const { parsePage, parsePerPage } = require('../utils/paginationUtils');
 const { msg } = require('../utils/responseUtils');
@@ -42,10 +39,13 @@ function buildConfigLabelMap(fieldConfig) {
 
 function buildSubmitterLabels(assignmentFieldConfig, submitterData = {}) {
   const configLabels = buildConfigLabelMap(assignmentFieldConfig);
-  return Object.keys(submitterData || {}).reduce((acc, key, index) => {
-    acc[key] = configLabels[key] || getFallbackSubmitterLabel(key, index);
-    return acc;
-  }, { ...configLabels });
+  return Object.keys(submitterData || {}).reduce(
+    (acc, key, index) => {
+      acc[key] = configLabels[key] || getFallbackSubmitterLabel(key, index);
+      return acc;
+    },
+    { ...configLabels }
+  );
 }
 
 function resolveSubmitterHeaderLabel(key, items = [], dynamicKeys = []) {
@@ -57,16 +57,7 @@ function resolveSubmitterHeaderLabel(key, items = [], dynamicKeys = []) {
   return getFallbackSubmitterLabel(key, index);
 }
 
-async function querySubmissions({
-  assignmentId = null,
-  search = '',
-  status = '',
-  dateFrom = '',
-  dateTo = '',
-  sort = 'upload-desc',
-  page = 1,
-  perPage = 20,
-}) {
+async function querySubmissions({ assignmentId = null, search = '', status = '', dateFrom = '', dateTo = '', sort = 'upload-desc', page = 1, perPage = 20 }) {
   const where = ['s.deleted_at IS NULL', "(a.id IS NULL OR a.status != 'deleted')"];
   const params = [];
   if (assignmentId) {
@@ -99,20 +90,24 @@ async function querySubmissions({
   }
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
   const offset = (page - 1) * perPage;
-  const totalRow = await getDb(`
+  const totalRow = await getDb(
+    `
     SELECT COUNT(*) AS total
     FROM submissions s
     LEFT JOIN assignments a ON a.id = s.assignment_id
     ${whereSql}
-  `, params);
-  const orderBy = {
-    'upload-asc': 'datetime(s.upload_time) ASC, s.id ASC',
-    'assignment-asc': 'a.title COLLATE NOCASE ASC, datetime(s.upload_time) DESC',
-    'assignment-desc': 'a.title COLLATE NOCASE DESC, datetime(s.upload_time) DESC',
-    'name-asc': 's.student_name COLLATE NOCASE ASC, datetime(s.upload_time) DESC',
-    'name-desc': 's.student_name COLLATE NOCASE DESC, datetime(s.upload_time) DESC',
-    'late-desc': 's.is_late DESC, datetime(s.upload_time) DESC',
-  }[sort] || 'datetime(s.upload_time) DESC, s.id DESC';
+  `,
+    params
+  );
+  const orderBy =
+    {
+      'upload-asc': 'datetime(s.upload_time) ASC, s.id ASC',
+      'assignment-asc': 'a.title COLLATE NOCASE ASC, datetime(s.upload_time) DESC',
+      'assignment-desc': 'a.title COLLATE NOCASE DESC, datetime(s.upload_time) DESC',
+      'name-asc': 's.student_name COLLATE NOCASE ASC, datetime(s.upload_time) DESC',
+      'name-desc': 's.student_name COLLATE NOCASE DESC, datetime(s.upload_time) DESC',
+      'late-desc': 's.is_late DESC, datetime(s.upload_time) DESC',
+    }[sort] || 'datetime(s.upload_time) DESC, s.id DESC';
   const rows = await allDb(
     `
       SELECT
@@ -176,16 +171,18 @@ function registerSubmissionRoutes(app) {
       const page = parsePage(req.query.page);
       const perPage = parsePerPage(req.query.perPage, 20, 100);
       if (req.query.assignmentId && !Number.isInteger(assignmentId)) return res.status(400).json({ message: msg('\u4efb\u52a1 ID \u65e0\u6548') });
-      res.json(await querySubmissions({
-        assignmentId,
-        search: req.query.search || '',
-        status: req.query.status || '',
-        dateFrom: req.query.dateFrom || '',
-        dateTo: req.query.dateTo || '',
-        sort: req.query.sort || 'upload-desc',
-        page,
-        perPage,
-      }));
+      res.json(
+        await querySubmissions({
+          assignmentId,
+          search: req.query.search || '',
+          status: req.query.status || '',
+          dateFrom: req.query.dateFrom || '',
+          dateTo: req.query.dateTo || '',
+          sort: req.query.sort || 'upload-desc',
+          page,
+          perPage,
+        })
+      );
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: msg('\u8bfb\u53d6\u63d0\u4ea4\u8bb0\u5f55\u5931\u8d25') });

@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const ADMIN_TOKEN_KEY = 'cloudnoteAdminToken';
 
   function getAdminToken() {
@@ -43,12 +43,7 @@
   }
 
   async function apiFetch(url, options = {}) {
-    const {
-      admin = false,
-      fallbackMessage = '操作失败',
-      headers,
-      ...fetchOptions
-    } = options;
+    const { admin = false, fallbackMessage = '操作失败', headers, ...fetchOptions } = options;
     let response;
     try {
       response = await fetch(url, {

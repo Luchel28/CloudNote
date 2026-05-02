@@ -1,8 +1,6 @@
 const crypto = require('crypto');
 
-const {
-  ADMIN_SESSION_TTL_MS,
-} = require('../config');
+const { ADMIN_SESSION_TTL_MS } = require('../config');
 const { msg } = require('../utils/responseUtils');
 
 const tokenStore = new Map();
@@ -43,7 +41,9 @@ function requireAdmin(req, res, next) {
 }
 
 function getAdminLoginIp(req) {
-  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const forwarded = String(req.headers['x-forwarded-for'] || '')
+    .split(',')[0]
+    .trim();
   return forwarded || req.ip || req.socket?.remoteAddress || 'unknown';
 }
 

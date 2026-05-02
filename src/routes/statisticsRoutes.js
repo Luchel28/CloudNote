@@ -1,10 +1,5 @@
 const { requireAdmin } = require('../middleware/requireAdmin');
-const {
-  buildSummary,
-  getStatistics,
-  getSubmissionTrend,
-  getTotalSubmitterCount,
-} = require('../services/statisticsService');
+const { buildSummary, getStatistics, getSubmissionTrend, getTotalSubmitterCount } = require('../services/statisticsService');
 const { getStatusLabel } = require('../utils/assignmentUtils');
 const { rowsToCsv } = require('../utils/csvUtils');
 const { safeName } = require('../utils/fileUtils');

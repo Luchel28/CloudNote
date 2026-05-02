@@ -1,9 +1,6 @@
 const crypto = require('crypto');
 
-const {
-  MAX_UPLOAD_FILES,
-  MAX_UPLOAD_SIZE_MB,
-} = require('../config');
+const { MAX_UPLOAD_FILES, MAX_UPLOAD_SIZE_MB } = require('../config');
 
 const VALID_STATUSES = new Set(['ongoing', 'ended', 'archived', 'deleted', 'completed', 'expired']);
 const BASIC_FIELD_TYPES = ['name', 'phone', 'idcard', 'email', 'birth_date'];
@@ -96,7 +93,10 @@ function normalizeFieldType(field = {}) {
 function splitOptions(value) {
   return Array.isArray(value)
     ? value.map((option) => String(option || '').trim()).filter(Boolean)
-    : String(value || '').split(/[,，\n]/).map((option) => option.trim()).filter(Boolean);
+    : String(value || '')
+        .split(/[,，\n]/)
+        .map((option) => option.trim())
+        .filter(Boolean);
 }
 
 function normalizeNumberRuleValue(value) {
@@ -125,16 +125,20 @@ function normalizeFieldRules(type, field = {}) {
 
 function getNormalizedFieldLabel(type, field, index) {
   if (isBasicFieldType(type)) return BASIC_FIELD_LABELS[type];
-  return String(field.name || field.label || '').trim() || ({
-    single_line: '单行文本',
-    numeric: '纯数值',
-    digits: '纯数字',
-    single_choice: '单选',
-    multiple_choice: '多选',
-    multi_line: '多行文本',
-    datetime: '日期和时间',
-    positive_integer: '正整数',
-  }[type] || `信息${index + 1}`);
+  return (
+    String(field.name || field.label || '').trim() ||
+    {
+      single_line: '单行文本',
+      numeric: '纯数值',
+      digits: '纯数字',
+      single_choice: '单选',
+      multiple_choice: '多选',
+      multi_line: '多行文本',
+      datetime: '日期和时间',
+      positive_integer: '正整数',
+    }[type] ||
+    `信息${index + 1}`
+  );
 }
 
 function normalizeFieldConfig(value) {
@@ -146,7 +150,7 @@ function normalizeFieldConfig(value) {
     const type = normalizeFieldType(field);
     const category = getFieldCategory(type);
     const label = getNormalizedFieldLabel(type, field, index);
-    const preferredKey = category === 'basic' ? BASIC_FIELD_KEYS[type] : (field.key || field.id || normalizeFieldKey(label, index));
+    const preferredKey = category === 'basic' ? BASIC_FIELD_KEYS[type] : field.key || field.id || normalizeFieldKey(label, index);
     let key = preferredKey;
     key = String(key).replace(/[^\w]/g, '') || `customField${index + 1}`;
     while (used.has(key)) key = `${key}${index + 1}`;
@@ -188,7 +192,9 @@ function isValidIntegerText(value) {
 }
 
 function parseStrictDateParts(value) {
-  const match = String(value || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const match = String(value || '')
+    .trim()
+    .match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
   const year = Number(match[1]);
   const month = Number(match[2]);
@@ -208,7 +214,9 @@ function isValidBirthDate(value) {
 }
 
 function isValidDateTime(value) {
-  const match = String(value || '').trim().match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})$/);
+  const match = String(value || '')
+    .trim()
+    .match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})$/);
   if (!match) return false;
   if (!parseStrictDateParts(match[1])) return false;
   const hour = Number(match[2]);
@@ -227,7 +235,10 @@ function isValidIdCard(value) {
   if (!parseStrictDateParts(birth)) return false;
   const weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
   const codes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
-  const sum = text.slice(0, 17).split('').reduce((total, char, index) => total + Number(char) * weights[index], 0);
+  const sum = text
+    .slice(0, 17)
+    .split('')
+    .reduce((total, char, index) => total + Number(char) * weights[index], 0);
   return codes[sum % 11] === text[17].toUpperCase();
 }
 
@@ -323,7 +334,12 @@ function normalizeExtensions(value) {
   const extensions = parseJson(value, DEFAULT_ALLOWED_EXTENSIONS);
   if (!Array.isArray(extensions)) return DEFAULT_ALLOWED_EXTENSIONS;
   const normalized = extensions
-    .map((ext) => String(ext || '').trim().toLowerCase().replace(/^\./, ''))
+    .map((ext) =>
+      String(ext || '')
+        .trim()
+        .toLowerCase()
+        .replace(/^\./, '')
+    )
     .filter(Boolean);
   return [...new Set(normalized)];
 }
@@ -356,14 +372,16 @@ function addEffectiveStatusFilter(whereParts, params, status, alias = 'a') {
 }
 
 function getStatusLabel(status) {
-  return {
-    ongoing: '进行中',
-    ended: '已结束',
-    completed: '已结束',
-    expired: '已过期',
-    archived: '已归档',
-    deleted: '已删除',
-  }[status] || '进行中';
+  return (
+    {
+      ongoing: '进行中',
+      ended: '已结束',
+      completed: '已结束',
+      expired: '已过期',
+      archived: '已归档',
+      deleted: '已删除',
+    }[status] || '进行中'
+  );
 }
 
 function formatAssignment(row) {

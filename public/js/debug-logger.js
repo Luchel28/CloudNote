@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const LOG_KEY = 'cloudnoteDebugLogs';
   const LOG_LIMIT = 1000;
   const REDACTED = '[redacted]';
@@ -28,19 +28,21 @@
 
   function isSensitiveKey(key = '') {
     const value = String(key).toLowerCase();
-    return value.includes('token')
-      || value.includes('password')
-      || value.includes('authorization')
-      || value.includes('admintoken')
-      || value.includes('filepath')
-      || value.includes('file_path')
-      || value.includes('localpath')
-      || value === 'path'
-      || value.endsWith('path')
-      || value.includes('filecontent')
-      || value.includes('file_content')
-      || value === 'content'
-      || value.endsWith('content');
+    return (
+      value.includes('token') ||
+      value.includes('password') ||
+      value.includes('authorization') ||
+      value.includes('admintoken') ||
+      value.includes('filepath') ||
+      value.includes('file_path') ||
+      value.includes('localpath') ||
+      value === 'path' ||
+      value.endsWith('path') ||
+      value.includes('filecontent') ||
+      value.includes('file_content') ||
+      value === 'content' ||
+      value.endsWith('content')
+    );
   }
 
   function looksLikeLocalPath(value = '') {
@@ -48,7 +50,9 @@
   }
 
   function cleanString(value, limit = 300) {
-    const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+    const text = String(value ?? '')
+      .replace(/\s+/g, ' ')
+      .trim();
     if (looksLikeLocalPath(text)) return '[redacted:path]';
     return text.length > limit ? `${text.slice(0, limit)}...` : text;
   }
@@ -81,10 +85,12 @@
         if (seen.has(value)) return '[circular]';
         seen.add(value);
         const result = {};
-        Object.keys(value).slice(0, 80).forEach((name) => {
-          if (name === 'target' || name === 'currentTarget' || name === 'srcElement') return;
-          result[name] = sanitize(value[name], name, seen);
-        });
+        Object.keys(value)
+          .slice(0, 80)
+          .forEach((name) => {
+            if (name === 'target' || name === 'currentTarget' || name === 'srcElement') return;
+            result[name] = sanitize(value[name], name, seen);
+          });
         return result;
       }
       return cleanString(value);
@@ -200,9 +206,11 @@
       if (target.closest('#saveTemplateButton, [data-close-save-template-modal]')) return 'admin:saveTemplate';
       if (target.closest('#assignmentSubmitButton')) return 'admin:publishAssignment';
       if (target.closest('#renameRuleButton, [data-rename-field]')) return 'admin:renameRuleSelect';
-      if (target.closest('[data-view-assignment], [data-edit-assignment], [data-delete-assignment], [data-download-assignment], [data-retry-assignments]')) return 'admin:assignmentListAction';
+      if (target.closest('[data-view-assignment], [data-edit-assignment], [data-delete-assignment], [data-download-assignment], [data-retry-assignments]'))
+        return 'admin:assignmentListAction';
       if (target.closest('#refreshButton, #downloadAllButton, #exportSubmissionsButton, [data-download-id], [data-delete-id]')) return 'admin:submissionAction';
-      if (target.closest('[data-recycle-type], [data-recycle-restore], [data-recycle-purge], #recycleBatchRestore, #recycleBatchPurge, #emptyRecycleButton')) return 'admin:recycleAction';
+      if (target.closest('[data-recycle-type], [data-recycle-restore], [data-recycle-purge], #recycleBatchRestore, #recycleBatchPurge, #emptyRecycleButton'))
+        return 'admin:recycleAction';
       if (target.closest('#exportStatisticsButton')) return 'admin:statisticsAction';
     }
     if (page === 'assignment') {
@@ -222,8 +230,14 @@
       if (target.closest('[data-field-name]')) return 'admin:fieldNameChange';
       if (target.closest('[data-field-required]')) return 'admin:fieldRequiredChange';
       if (target.closest('[data-extension-group]')) return 'admin:fileTypeToggle';
-      if (target.closest('[name="enableLimit"], [name="maxFileSizeMb"], [name="maxFiles"], [name="requiredUpload"], [name="renameEnabled"], [name="downloadStructure"]')) return 'admin:fileSettingChange';
-      if (target.closest('#assignmentStatusFilter, #assignmentSearchInput, #assignmentSortSelect, #assignmentPerPageSelect')) return 'admin:assignmentListFilter';
+      if (
+        target.closest(
+          '[name="enableLimit"], [name="maxFileSizeMb"], [name="maxFiles"], [name="requiredUpload"], [name="renameEnabled"], [name="downloadStructure"]'
+        )
+      )
+        return 'admin:fileSettingChange';
+      if (target.closest('#assignmentStatusFilter, #assignmentSearchInput, #assignmentSortSelect, #assignmentPerPageSelect'))
+        return 'admin:assignmentListFilter';
       if (target.closest('#statisticsAssignmentFilter, #statisticsStartDate, #statisticsEndDate, #statisticsStatusFilter')) return 'admin:statisticsFilter';
     }
     if (page === 'assignment') {
@@ -246,7 +260,8 @@
       document.addEventListener('submit', (event) => {
         if (event.target?.id === 'adminLoginForm') record('admin:loginAttempt', { event, target: event.target, message: '管理员登录尝试' });
         if (event.target?.id === 'saveTemplateForm') record('admin:saveTemplateSubmit', { event, target: event.target, message: '保存模板' });
-        if (event.target?.id === 'uploadForm') record(getPageName() === 'index' ? 'index:jumpUploadPage' : 'assignment:submitAssignment', { event, target: event.target });
+        if (event.target?.id === 'uploadForm')
+          record(getPageName() === 'index' ? 'index:jumpUploadPage' : 'assignment:submitAssignment', { event, target: event.target });
       });
     } catch {}
   }

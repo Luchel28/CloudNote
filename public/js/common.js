@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
 
   const STATUS_LABELS = {
     ongoing: '进行中',
@@ -108,13 +108,7 @@
     }, 2200);
   }
 
-  function showConfirmDialog({
-    title = '确认操作',
-    message = '',
-    confirmText = '确认',
-    cancelText = '取消',
-    variant = 'primary',
-  } = {}) {
+  function showConfirmDialog({ title = '确认操作', message = '', confirmText = '确认', cancelText = '取消', variant = 'primary' } = {}) {
     return new Promise((resolve) => {
       const dialog = document.createElement('div');
       dialog.className = 'confirm-dialog';

@@ -53,11 +53,12 @@ function buildUploadFilename(assignment, submitterData, originalFilename, index,
     submitterName: submitterData.studentName,
     uploadTime: uploadTime.replace(/[-:T.Z]/g, '').slice(0, 12),
   };
-  const base = assignment.renameFields
-    .map((fieldKey) => tokenMap[fieldKey] || submitterData[fieldKey])
-    .filter(Boolean)
-    .map(safeName)
-    .join('_') || originalBase;
+  const base =
+    assignment.renameFields
+      .map((fieldKey) => tokenMap[fieldKey] || submitterData[fieldKey])
+      .filter(Boolean)
+      .map(safeName)
+      .join('_') || originalBase;
   const suffix = assignment.maxFiles > 1 ? `_${index + 1}` : '';
   return `${base}${suffix}${ext}`;
 }
@@ -66,7 +67,7 @@ function getSubmittedFieldValue(body, key, type) {
   const raw = body[key];
   if (Array.isArray(raw)) {
     const values = raw.map((item) => String(item || '').trim()).filter(Boolean);
-    return (type === 'checkbox' || type === 'multiple_choice') ? values.join(', ') : (values[0] || '');
+    return type === 'checkbox' || type === 'multiple_choice' ? values.join(', ') : values[0] || '';
   }
   return String(raw || '').trim();
 }
@@ -137,9 +138,11 @@ async function scanDirectorySize(dirPath, rootPath = dirPath) {
 }
 
 function cleanupUploadedFiles(files = {}) {
-  Object.values(files).flat().forEach((file) => {
-    if (file?.path) fs.unlink(file.path, () => {});
-  });
+  Object.values(files)
+    .flat()
+    .forEach((file) => {
+      if (file?.path) fs.unlink(file.path, () => {});
+    });
 }
 
 module.exports = {

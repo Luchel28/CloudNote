@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
   const api = CloudNote.api || {};
   const $ = common.$ || ((selector) => document.querySelector(selector));
@@ -38,7 +38,8 @@
   const SUBMISSION_IDENTITY_FIELD_KEYS = new Set(['studentName', 'studentId', 'phone', 'email']);
   const SUBMISSION_IDENTITY_FIELD_TYPES = new Set(['name', 'phone', 'email']);
   const SUBMISSION_IDENTITY_FIELD_LABELS = new Set(['姓名', '学号', '手机号', '邮箱']);
-  const DUPLICATE_IDENTITY_WARNING = '当前任务未启用姓名、学号、手机号或邮箱字段，系统可能无法准确判断重复提交。请至少启用一个身份识别字段，或开启允许重复提交。';
+  const DUPLICATE_IDENTITY_WARNING =
+    '当前任务未启用姓名、学号、手机号或邮箱字段，系统可能无法准确判断重复提交。请至少启用一个身份识别字段，或开启允许重复提交。';
   const LEGACY_FIELD_TYPE_MAP = {
     tel: 'phone',
     date: 'birth_date',
@@ -191,11 +192,11 @@
     getLogs: getDebugLogs,
   };
 
-  const runtime = CloudNote.adminRuntime = CloudNote.adminRuntime || {
+  const runtime = (CloudNote.adminRuntime = CloudNote.adminRuntime || {
     publicBaseUrl: window.location.origin,
     systemMaxUploadSizeMb: 500,
     systemMaxUploadFiles: 20,
-  };
+  });
 
   function getElements() {
     return {
@@ -275,10 +276,10 @@
     const key = String(field.key || field.id || '').trim();
     const type = String(field.type || '').trim();
     const label = String(field.label || field.name || '').trim();
-    return field.enabled !== false && field.visible !== false && (
-      SUBMISSION_IDENTITY_FIELD_KEYS.has(key)
-      || SUBMISSION_IDENTITY_FIELD_TYPES.has(type)
-      || SUBMISSION_IDENTITY_FIELD_LABELS.has(label)
+    return (
+      field.enabled !== false &&
+      field.visible !== false &&
+      (SUBMISSION_IDENTITY_FIELD_KEYS.has(key) || SUBMISSION_IDENTITY_FIELD_TYPES.has(type) || SUBMISSION_IDENTITY_FIELD_LABELS.has(label))
     );
   }
 
@@ -302,7 +303,10 @@
   function splitOptions(value) {
     return Array.isArray(value)
       ? value.map((item) => String(item || '').trim()).filter(Boolean)
-      : String(value || '').split(/[,，\n]/).map((item) => item.trim()).filter(Boolean);
+      : String(value || '')
+          .split(/[,，\n]/)
+          .map((item) => item.trim())
+          .filter(Boolean);
   }
 
   function getFixedFieldLabel(type) {
@@ -330,9 +334,7 @@
     }
     if (type === 'single_choice' || type === 'multiple_choice') {
       return {
-        options: splitOptions(rules.options ?? source.options).length
-          ? splitOptions(rules.options ?? source.options)
-          : getDefaultFieldOptions(type),
+        options: splitOptions(rules.options ?? source.options).length ? splitOptions(rules.options ?? source.options) : getDefaultFieldOptions(type),
       };
     }
     return {};
@@ -368,9 +370,7 @@
     return [...fieldConfigList.querySelectorAll('.collect-field-row')].map((row, index) => {
       const type = row.querySelector('select[data-field-type]')?.value || row.dataset.currentFieldType || 'single_line';
       const category = getFieldCategory(type, row.dataset.category);
-      const label = category === 'basic'
-        ? getFixedFieldLabel(type)
-        : String(row.dataset.fieldNameDraft ?? row.dataset.fieldLabel ?? '').trim();
+      const label = category === 'basic' ? getFixedFieldLabel(type) : String(row.dataset.fieldNameDraft ?? row.dataset.fieldLabel ?? '').trim();
       const minValue = row.querySelector('[data-number-min]')?.value ?? '';
       const maxValue = row.querySelector('[data-number-max]')?.value ?? '';
       const digitLength = row.querySelector('[data-number-digits]')?.value ?? '';
@@ -414,7 +414,7 @@
     return {
       title: formData.get('title') || '',
       description: formData.get('description') || '',
-      deadline: noDeadline ? null : (formData.get('deadline') || ''),
+      deadline: noDeadline ? null : formData.get('deadline') || '',
       noDeadline,
       status: 'ongoing',
       allowLate: Boolean(formData.get('allowLate')),
@@ -428,8 +428,14 @@
       maxFiles: Number(formData.get('maxFiles') || 1),
       allowFolder: Boolean(formData.get('allowFolder')),
       renameEnabled: Boolean(formData.get('renameEnabled')),
-      renameFields: String(formData.get('renameFields') || '').split(',').map((item) => item.trim()).filter(Boolean),
-      allowedExtensions: String(formData.get('allowedExtensions') || '').split(',').map((item) => item.trim()).filter(Boolean),
+      renameFields: String(formData.get('renameFields') || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+      allowedExtensions: String(formData.get('allowedExtensions') || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
       fieldConfig: getFieldConfigFromForm(),
       template: {
         enabled: false,
@@ -454,44 +460,43 @@
     const source = Array.isArray(fields) ? fields : DEFAULT_FIELDS;
     const usedKeys = new Set();
     const usedBasicTypes = new Set();
-    return source.map((field, index) => {
-      const normalizedType = normalizeFieldType(field);
-      const isDuplicateBasic = isBasicFieldType(normalizedType) && usedBasicTypes.has(normalizedType);
-      const type = isDuplicateBasic ? 'single_line' : normalizedType;
-      const category = isBasicFieldType(type) ? 'basic' : 'custom';
-      if (category === 'basic') usedBasicTypes.add(type);
-      const fixedLabel = getFixedFieldLabel(type);
-      const rules = getDefaultFieldRules(type, field);
-      const originalLabel = String(field.name || field.label || '').trim();
-      const label = category === 'basic'
-        ? fixedLabel
-        : (originalLabel || (isDuplicateBasic ? getFixedFieldLabel(normalizedType) : fixedLabel) || `信息${index + 1}`);
-      const originalKey = String(field.key || field.id || '').trim();
-      const preferredKey = category === 'basic' ? BASIC_FIELD_KEYS[type] : originalKey;
-      const key = preferredKey && !usedKeys.has(preferredKey)
-        ? preferredKey
-        : createUniqueFieldKey(usedKeys);
-      usedKeys.add(key);
-      return {
-        key,
-        id: field.id || key,
-        name: label,
-        label,
-        type,
-        category,
-        enabled: field.enabled !== false,
-        visible: field.visible !== false,
-        required: Boolean(field.required),
-        maxLength: field.maxLength || '',
-        numberRuleMode: type === 'digits' ? 'digits' : type === 'numeric' ? 'range' : '',
-        minValue: rules.min ?? '',
-        maxValue: rules.max ?? '',
-        digitLength: rules.length ?? '',
-        options: rules.options || [],
-        rules,
-        system: category === 'basic',
-      };
-    }).filter((field) => field.enabled !== false && field.visible !== false);
+    return source
+      .map((field, index) => {
+        const normalizedType = normalizeFieldType(field);
+        const isDuplicateBasic = isBasicFieldType(normalizedType) && usedBasicTypes.has(normalizedType);
+        const type = isDuplicateBasic ? 'single_line' : normalizedType;
+        const category = isBasicFieldType(type) ? 'basic' : 'custom';
+        if (category === 'basic') usedBasicTypes.add(type);
+        const fixedLabel = getFixedFieldLabel(type);
+        const rules = getDefaultFieldRules(type, field);
+        const originalLabel = String(field.name || field.label || '').trim();
+        const label =
+          category === 'basic' ? fixedLabel : originalLabel || (isDuplicateBasic ? getFixedFieldLabel(normalizedType) : fixedLabel) || `信息${index + 1}`;
+        const originalKey = String(field.key || field.id || '').trim();
+        const preferredKey = category === 'basic' ? BASIC_FIELD_KEYS[type] : originalKey;
+        const key = preferredKey && !usedKeys.has(preferredKey) ? preferredKey : createUniqueFieldKey(usedKeys);
+        usedKeys.add(key);
+        return {
+          key,
+          id: field.id || key,
+          name: label,
+          label,
+          type,
+          category,
+          enabled: field.enabled !== false,
+          visible: field.visible !== false,
+          required: Boolean(field.required),
+          maxLength: field.maxLength || '',
+          numberRuleMode: type === 'digits' ? 'digits' : type === 'numeric' ? 'range' : '',
+          minValue: rules.min ?? '',
+          maxValue: rules.max ?? '',
+          digitLength: rules.length ?? '',
+          options: rules.options || [],
+          rules,
+          system: category === 'basic',
+        };
+      })
+      .filter((field) => field.enabled !== false && field.visible !== false);
   }
 
   function updateCreateOverview() {
@@ -507,7 +512,10 @@
 
   function getSelectedRenameFields() {
     const { assignmentForm } = getElements();
-    return String(assignmentForm?.renameFields?.value || 'originalFilename').split(',').map((item) => item.trim()).filter(Boolean);
+    return String(assignmentForm?.renameFields?.value || 'originalFilename')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
   }
 
   function getRenameFieldLabel(key) {
@@ -542,11 +550,15 @@
         unique.push(option);
       }
     });
-    renameRuleOptions.innerHTML = unique.map((option) => `
+    renameRuleOptions.innerHTML = unique
+      .map(
+        (option) => `
       <button class="rename-option ${selected.has(option.key) ? 'is-selected' : ''}" type="button" data-rename-field="${escapeHtml(option.key)}">
         <span>${selected.has(option.key) ? '✓' : ''}</span>${escapeHtml(option.label)}
       </button>
-    `).join('');
+    `
+      )
+      .join('');
     updateRenamePreview();
   }
 
@@ -564,40 +576,41 @@
       recordDebug('renderFields:after', { message: 'rendered empty field list' });
       return;
     }
-    fieldConfigList.innerHTML = normalized.map((field, index) => {
-      const isBasic = field.category === 'basic' || isBasicFieldType(field.type);
-      const ruleSummary = (() => {
-        if (field.type === 'name') return '<span class="field-rule-text">中文1-5 / 英文1-20</span>';
-        if (field.type === 'phone') return '<span class="field-rule-text">大陆手机号</span>';
-        if (field.type === 'idcard') return '<span class="field-rule-text">15/18位，含日期与校验位</span>';
-        if (field.type === 'email') return '<span class="field-rule-text">邮箱格式</span>';
-        if (field.type === 'birth_date') return '<span class="field-rule-text">1900-01-01 至今</span>';
-        if (field.type === 'single_line') return '<span class="field-rule-text">1-50字</span>';
-        if (field.type === 'multi_line') return '<span class="field-rule-text">1-1000字</span>';
-        if (field.type === 'datetime') return '<span class="field-rule-text">日期+时间</span>';
-        if (field.type === 'positive_integer') return '<span class="field-rule-text">大于0的整数</span>';
-        if (field.type === 'digits') {
-          return `<label class="number-rule compact-rule">
+    fieldConfigList.innerHTML = normalized
+      .map((field, index) => {
+        const isBasic = field.category === 'basic' || isBasicFieldType(field.type);
+        const ruleSummary = (() => {
+          if (field.type === 'name') return '<span class="field-rule-text">中文1-5 / 英文1-20</span>';
+          if (field.type === 'phone') return '<span class="field-rule-text">大陆手机号</span>';
+          if (field.type === 'idcard') return '<span class="field-rule-text">15/18位，含日期与校验位</span>';
+          if (field.type === 'email') return '<span class="field-rule-text">邮箱格式</span>';
+          if (field.type === 'birth_date') return '<span class="field-rule-text">1900-01-01 至今</span>';
+          if (field.type === 'single_line') return '<span class="field-rule-text">1-50字</span>';
+          if (field.type === 'multi_line') return '<span class="field-rule-text">1-1000字</span>';
+          if (field.type === 'datetime') return '<span class="field-rule-text">日期+时间</span>';
+          if (field.type === 'positive_integer') return '<span class="field-rule-text">大于0的整数</span>';
+          if (field.type === 'digits') {
+            return `<label class="number-rule compact-rule">
             <span>长度</span>
             <input type="number" data-number-digits data-field-tab="collect" min="1" max="30" placeholder="不限" value="${escapeHtml(field.digitLength ?? field.rules?.length ?? '')}">
           </label>`;
-        }
-        if (field.type === 'numeric') {
-          return `<span class="number-rule compact-range-rule">
+          }
+          if (field.type === 'numeric') {
+            return `<span class="number-rule compact-range-rule">
             <input type="number" step="any" data-number-min data-field-tab="collect" placeholder="最小值" value="${escapeHtml(field.minValue ?? field.rules?.min ?? '')}">
             <span>-</span>
             <input type="number" step="any" data-number-max data-field-tab="collect" placeholder="最大值" value="${escapeHtml(field.maxValue ?? field.rules?.max ?? '')}">
           </span>`;
-        }
-        if (field.type === 'single_choice' || field.type === 'multiple_choice') {
-          return `<label class="field-options-control compact-options">
+          }
+          if (field.type === 'single_choice' || field.type === 'multiple_choice') {
+            return `<label class="field-options-control compact-options">
             <span>选项</span>
             <input type="text" data-field-options data-field-tab="collect" placeholder="选项一, 选项二" value="${escapeHtml((field.options || []).join(', '))}">
           </label>`;
-        }
-        return '<span class="field-rule-text">1-50字</span>';
-      })();
-      return `
+          }
+          return '<span class="field-rule-text">1-50字</span>';
+        })();
+        return `
         <div class="collect-field-row" data-field-key="${escapeHtml(field.key)}" data-field-id="${escapeHtml(field.id)}" data-current-field-type="${escapeHtml(field.type)}" data-category="${escapeHtml(field.category)}" data-field-label="${escapeHtml(field.label)}" data-field-name-draft="${escapeHtml(field.label)}" data-system="${isBasic ? 'true' : 'false'}">
           <span class="field-index">${index + 1}</span>
           <div class="field-name-editor">
@@ -608,9 +621,13 @@
             ${fieldNameErrors.has(field.key) ? `<small class="field-error-message">${escapeHtml(fieldNameErrors.get(field.key))}</small>` : ''}
           </div>
           <select data-field-type data-field-tab="collect" aria-label="信息类型" ${isBasic ? 'disabled aria-disabled="true"' : ''}>
-            ${isBasic
-              ? `<option value="${field.type}" selected>${FIELD_TYPE_LABELS[field.type]}</option>`
-              : CUSTOM_FIELD_TYPES.map((type) => `<option value="${type}" ${field.type === type ? 'selected' : ''}>${FIELD_TYPE_LABELS[type]}</option>`).join('')}
+            ${
+              isBasic
+                ? `<option value="${field.type}" selected>${FIELD_TYPE_LABELS[field.type]}</option>`
+                : CUSTOM_FIELD_TYPES.map((type) => `<option value="${type}" ${field.type === type ? 'selected' : ''}>${FIELD_TYPE_LABELS[type]}</option>`).join(
+                    ''
+                  )
+            }
           </select>
           <label class="check-inline">
             <input type="checkbox" data-field-required data-field-tab="collect" ${field.required ? 'checked' : ''}>
@@ -627,7 +644,8 @@
           </label>
         </div>
       `;
-    }).join('');
+      })
+      .join('');
     updateFieldSelectionState();
     renderRenameRuleOptions();
     updateCreateOverview();
@@ -705,7 +723,10 @@
   }
 
   function inferFileType(extensions = []) {
-    const list = (extensions || []).map((item) => item.toLowerCase()).sort().join(',');
+    const list = (extensions || [])
+      .map((item) => item.toLowerCase())
+      .sort()
+      .join(',');
     for (const [type, values] of Object.entries(FILE_TYPE_EXTENSION_MAP)) {
       if (values.slice().sort().join(',') === list) return type;
     }
@@ -730,7 +751,12 @@
     const { assignmentForm, fileTypeSelect } = getElements();
     if (!assignmentForm?.allowedExtensions) return;
     const selected = getSelectedFileTypeGroups();
-    const extensions = selected.flatMap((input) => String(input.dataset.extensions || '').split(',').map((item) => item.trim()).filter(Boolean));
+    const extensions = selected.flatMap((input) =>
+      String(input.dataset.extensions || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    );
     const unique = [...new Set(extensions.map((item) => item.toLowerCase()))];
     assignmentForm.allowedExtensions.value = unique.join(',');
     if (fileTypeSelect) fileTypeSelect.value = inferFileTypeFromExtensions(unique);
@@ -740,7 +766,10 @@
     const { fileTypeChecks } = getElements();
     const list = new Set((extensions || []).map((item) => String(item).toLowerCase()));
     fileTypeChecks.forEach((input) => {
-      const groupExtensions = String(input.dataset.extensions || '').split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
+      const groupExtensions = String(input.dataset.extensions || '')
+        .split(',')
+        .map((item) => item.trim().toLowerCase())
+        .filter(Boolean);
       input.checked = groupExtensions.length > 0 && groupExtensions.every((ext) => list.has(ext));
     });
     updateAllowedExtensionsFromChecks();
@@ -871,7 +900,9 @@
       }
       if (fieldType === 'single_choice' || fieldType === 'multiple_choice') {
         const optionInput = row.querySelector('[data-field-options]');
-        const rawOptions = String(optionInput?.value || '').split(/[,，\n]/).map((item) => item.trim());
+        const rawOptions = String(optionInput?.value || '')
+          .split(/[,，\n]/)
+          .map((item) => item.trim());
         const options = rawOptions.filter(Boolean);
         const minOptions = fieldType === 'single_choice' ? 2 : 3;
         if (rawOptions.some((item) => !item)) addError(optionInput, '选项不可为空', 'collect');
@@ -889,7 +920,8 @@
     if (assignmentForm.enableLimit?.checked) {
       const size = Number(assignmentForm.maxFileSizeMb.value);
       const count = Number(assignmentForm.maxFiles.value);
-      if (!Number.isInteger(size) || size < 1 || size > runtime.systemMaxUploadSizeMb) addError(assignmentForm.maxFileSizeMb, `单文件大小需为 1-${runtime.systemMaxUploadSizeMb} MB`, 'files');
+      if (!Number.isInteger(size) || size < 1 || size > runtime.systemMaxUploadSizeMb)
+        addError(assignmentForm.maxFileSizeMb, `单文件大小需为 1-${runtime.systemMaxUploadSizeMb} MB`, 'files');
       if (!Number.isInteger(count) || count < 1 || count > 20) addError(assignmentForm.maxFiles, '文件数量需为 1-20', 'files');
     }
 
@@ -908,10 +940,14 @@
     const completeState = {
       basic: Boolean(snapshot.title.trim() && (snapshot.noDeadline || snapshot.deadline)),
       collect: snapshot.fieldConfig.every((field) => field.label),
-      files: !snapshot.enableLimit || (
-        Number.isInteger(snapshot.maxFileSizeMb) && snapshot.maxFileSizeMb >= 1 && snapshot.maxFileSizeMb <= runtime.systemMaxUploadSizeMb &&
-        Number.isInteger(snapshot.maxFiles) && snapshot.maxFiles >= 1 && snapshot.maxFiles <= 20
-      ),
+      files:
+        !snapshot.enableLimit ||
+        (Number.isInteger(snapshot.maxFileSizeMb) &&
+          snapshot.maxFileSizeMb >= 1 &&
+          snapshot.maxFileSizeMb <= runtime.systemMaxUploadSizeMb &&
+          Number.isInteger(snapshot.maxFiles) &&
+          snapshot.maxFiles >= 1 &&
+          snapshot.maxFiles <= 20),
     };
 
     taskTabs.forEach((tab) => {
@@ -993,7 +1029,7 @@
     assignmentForm.title.value = snapshot.title || '';
     assignmentForm.description.value = snapshot.description || '';
     assignmentForm.noDeadline.checked = snapshot.noDeadline === true || snapshot.deadline === null || snapshot.deadline === '';
-    assignmentForm.deadline.value = assignmentForm.noDeadline.checked ? '' : (snapshot.deadline || getTodayEndDatetimeLocal());
+    assignmentForm.deadline.value = assignmentForm.noDeadline.checked ? '' : snapshot.deadline || getTodayEndDatetimeLocal();
     assignmentForm.status.value = 'ongoing';
     assignmentForm.allowLate.checked = Boolean(snapshot.allowLate);
     assignmentForm.allowRepeat.checked = snapshot.allowRepeat !== false;
@@ -1116,10 +1152,8 @@
       return;
     }
     const existingKeys = new Set(fields.map((field) => field.key));
-    const key = isBasic && !existingKeys.has(BASIC_FIELD_KEYS[type])
-      ? BASIC_FIELD_KEYS[type]
-      : createUniqueFieldKey(existingKeys);
-    const fieldLabel = isBasic ? getFixedFieldLabel(type) : (label || getFixedFieldLabel(type));
+    const key = isBasic && !existingKeys.has(BASIC_FIELD_KEYS[type]) ? BASIC_FIELD_KEYS[type] : createUniqueFieldKey(existingKeys);
+    const fieldLabel = isBasic ? getFixedFieldLabel(type) : label || getFixedFieldLabel(type);
     fields.push({
       key,
       id: key,
@@ -1145,13 +1179,16 @@
 
   function removeField(indexOrKey) {
     const fields = getFieldConfigFromForm();
-    const index = Number.isInteger(Number(indexOrKey))
-      ? Number(indexOrKey)
-      : fields.findIndex((field) => field.key === indexOrKey || field.id === indexOrKey);
+    const index = Number.isInteger(Number(indexOrKey)) ? Number(indexOrKey) : fields.findIndex((field) => field.key === indexOrKey || field.id === indexOrKey);
     if (index < 0 || index >= fields.length) return;
     const removed = fields.splice(index, 1);
     if (removed[0]?.key) fieldNameErrors.delete(removed[0].key);
-    recordDebug('field:deleted', { rowKey: removed[0]?.key || '', fieldType: removed[0]?.type || '', fieldLabel: removed[0]?.label || '', message: `removed index ${index}` });
+    recordDebug('field:deleted', {
+      rowKey: removed[0]?.key || '',
+      fieldType: removed[0]?.type || '',
+      fieldLabel: removed[0]?.label || '',
+      message: `removed index ${index}`,
+    });
     renderFields(fields);
     markDraftDirty('field:deleted');
   }
@@ -1193,12 +1230,15 @@
 
   function updateField(indexOrKey, data = {}) {
     const fields = getFieldConfigFromForm();
-    const index = Number.isInteger(Number(indexOrKey))
-      ? Number(indexOrKey)
-      : fields.findIndex((field) => field.key === indexOrKey || field.id === indexOrKey);
+    const index = Number.isInteger(Number(indexOrKey)) ? Number(indexOrKey) : fields.findIndex((field) => field.key === indexOrKey || field.id === indexOrKey);
     if (index < 0 || index >= fields.length) return;
     fields[index] = { ...fields[index], ...data };
-    recordDebug('field:updated', { rowKey: fields[index]?.key || '', fieldType: fields[index]?.type || '', fieldLabel: fields[index]?.label || '', message: 'updateField called' });
+    recordDebug('field:updated', {
+      rowKey: fields[index]?.key || '',
+      fieldType: fields[index]?.type || '',
+      fieldLabel: fields[index]?.label || '',
+      message: 'updateField called',
+    });
     renderFields(fields);
     markDraftDirty('field:updated');
   }
@@ -1219,25 +1259,37 @@
       repeatMode: formData.get('repeatMode'),
       maxFiles: Number(formData.get('maxFiles')),
       maxFileSizeMb: Number(formData.get('maxFileSizeMb')),
-      allowedExtensions: String(formData.get('allowedExtensions') || '').split(',').map((item) => item.trim()).filter(Boolean),
+      allowedExtensions: String(formData.get('allowedExtensions') || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
       requiredUpload: Boolean(formData.get('requiredUpload')),
       fileType: formData.get('fileType') || 'any',
       enableLimit: Boolean(formData.get('enableLimit')),
       allowFolder: Boolean(formData.get('allowFolder')),
       renameEnabled: Boolean(formData.get('renameEnabled')),
-      renameFields: String(formData.get('renameFields') || '').split(',').map((item) => item.trim()).filter(Boolean),
+      renameFields: String(formData.get('renameFields') || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
       downloadStructure: formData.get('downloadStructure'),
       fieldConfig,
       collectFields: fieldConfig,
       fileRules: {
         requiredUpload: Boolean(formData.get('requiredUpload')),
         fileType: formData.get('fileType') || 'any',
-        allowedExtensions: String(formData.get('allowedExtensions') || '').split(',').map((item) => item.trim()).filter(Boolean),
+        allowedExtensions: String(formData.get('allowedExtensions') || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean),
         enableLimit: Boolean(formData.get('enableLimit')),
         maxFileSizeMB: Number(formData.get('maxFileSizeMb')),
         maxFileCount: Number(formData.get('maxFiles')),
         enableRename: Boolean(formData.get('renameEnabled')),
-        renameFields: String(formData.get('renameFields') || '').split(',').map((item) => item.trim()).filter(Boolean),
+        renameFields: String(formData.get('renameFields') || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean),
         allowFolder: Boolean(formData.get('allowFolder')),
       },
     };
@@ -1251,9 +1303,7 @@
     const assignmentId = formData.get('assignmentId');
     const body = getAssignmentPayload();
     try {
-      const savedAssignment = await (assignmentId
-        ? api.adminPut(`/api/assignments/${assignmentId}`, body)
-        : api.adminPost('/api/assignments', body));
+      const savedAssignment = await (assignmentId ? api.adminPut(`/api/assignments/${assignmentId}`, body) : api.adminPost('/api/assignments', body));
       reset();
       CloudNote.adminTemplates?.clearEditingTemplate?.();
       setMessage(assignmentMessage, assignmentId ? '任务已更新' : `任务已创建，链接：${getAssignmentUrl(savedAssignment)}`, 'success');
@@ -1294,20 +1344,24 @@
   }
 
   function getFileTypeLabel(fileType = 'document') {
-    return {
-      any: '不限制',
-      word: 'Word',
-      pdf: 'PDF',
-      text: '文本',
-      excel: 'Excel',
-      ppt: 'PPT',
-      document: '文档/文本',
-      image: '图片',
-      video: '视频',
-      archive: '压缩包',
-      installer: '安装包',
-      custom: '自定义组合',
-    }[fileType] || fileType || '文档/文本';
+    return (
+      {
+        any: '不限制',
+        word: 'Word',
+        pdf: 'PDF',
+        text: '文本',
+        excel: 'Excel',
+        ppt: 'PPT',
+        document: '文档/文本',
+        image: '图片',
+        video: '视频',
+        archive: '压缩包',
+        installer: '安装包',
+        custom: '自定义组合',
+      }[fileType] ||
+      fileType ||
+      '文档/文本'
+    );
   }
 
   function getSystemUploadLimits() {
@@ -1421,14 +1475,20 @@
         const target = index + Number(moveButton.dataset.moveDir);
         if (target >= 0 && target < fields.length) {
           [fields[index], fields[target]] = [fields[target], fields[index]];
-          recordDebug('field:moved', { target: moveButton, rowKey: fields[target]?.key || '', fieldType: fields[target]?.type || '', fieldLabel: fields[target]?.label || '', message: `from ${index} to ${target}` });
+          recordDebug('field:moved', {
+            target: moveButton,
+            rowKey: fields[target]?.key || '',
+            fieldType: fields[target]?.type || '',
+            fieldLabel: fields[target]?.label || '',
+            message: `from ${index} to ${target}`,
+          });
           renderFields(fields);
           markDraftDirty('field:moved');
         }
         return;
       }
       if (!removeButton) return;
-      if (!await showConfirmDialog({ title: '删除字段', message: '确定删除这个字段吗？', confirmText: '删除', variant: 'danger' })) return;
+      if (!(await showConfirmDialog({ title: '删除字段', message: '确定删除这个字段吗？', confirmText: '删除', variant: 'danger' }))) return;
       recordDebug('field:deleteRequested', { target: removeButton, message: `index ${removeButton.dataset.removeField}` });
       removeField(Number(removeButton.dataset.removeField));
     });
@@ -1483,7 +1543,11 @@
       removeSelectedFields().catch((error) => setMessage(assignmentMessage, error.message, 'error'));
     });
 
-    fileTypeSelect?.addEventListener('change', () => { updateAllowedExtensionsFromChecks(); updateCreateOverview(); markDraftDirty('fileType:changed'); });
+    fileTypeSelect?.addEventListener('change', () => {
+      updateAllowedExtensionsFromChecks();
+      updateCreateOverview();
+      markDraftDirty('fileType:changed');
+    });
     fileTypeChecks.forEach((checkbox) => {
       checkbox.addEventListener('change', () => {
         updateAllowedExtensionsFromChecks();
@@ -1493,13 +1557,32 @@
         recordDebug('fileType:changed', { target: checkbox, message: checkbox.checked ? '勾选文件类型' : '取消文件类型' });
       });
     });
-    assignmentForm?.noDeadline?.addEventListener('change', () => { syncNoDeadlineState(); updateCreateOverview(); updateTaskTabStates(); markDraftDirty('basic:noDeadline'); });
-    assignmentForm?.enableLimit?.addEventListener('change', () => { syncLimitState(); updateCreateOverview(); markDraftDirty('fileLimit:enabled'); recordDebug('fileSetting:limitToggled', { target: assignmentForm.enableLimit }); });
-    assignmentForm?.renameEnabled?.addEventListener('change', () => { syncRenameState(); updateCreateOverview(); markDraftDirty('rename:enabled'); recordDebug('fileSetting:renameToggled', { target: assignmentForm.renameEnabled }); });
+    assignmentForm?.noDeadline?.addEventListener('change', () => {
+      syncNoDeadlineState();
+      updateCreateOverview();
+      updateTaskTabStates();
+      markDraftDirty('basic:noDeadline');
+    });
+    assignmentForm?.enableLimit?.addEventListener('change', () => {
+      syncLimitState();
+      updateCreateOverview();
+      markDraftDirty('fileLimit:enabled');
+      recordDebug('fileSetting:limitToggled', { target: assignmentForm.enableLimit });
+    });
+    assignmentForm?.renameEnabled?.addEventListener('change', () => {
+      syncRenameState();
+      updateCreateOverview();
+      markDraftDirty('rename:enabled');
+      recordDebug('fileSetting:renameToggled', { target: assignmentForm.renameEnabled });
+    });
     renameRuleButton?.addEventListener('click', (event) => {
       event.stopPropagation();
       renameRuleMenu?.classList.toggle('is-hidden');
-      recordDebug('renameRule:toggle', { event, target: renameRuleButton, message: renameRuleMenu?.classList.contains('is-hidden') ? '隐藏重命名规则' : '显示重命名规则' });
+      recordDebug('renameRule:toggle', {
+        event,
+        target: renameRuleButton,
+        message: renameRuleMenu?.classList.contains('is-hidden') ? '隐藏重命名规则' : '显示重命名规则',
+      });
     });
     renameRuleMenu?.addEventListener('click', (event) => event.stopPropagation());
     renameRuleOptions?.addEventListener('click', (event) => {
@@ -1560,7 +1643,9 @@
     initialized = true;
     initDebugToolbar();
     recordDebug('init:createTaskPage', { message: '初始化创建任务页' });
-    loadPublicConfig().then(() => updateTaskTabStates()).catch(() => {});
+    loadPublicConfig()
+      .then(() => updateTaskTabStates())
+      .catch(() => {});
     bindEvents();
     startAssignmentAutosave();
     setActiveTaskTab('basic');

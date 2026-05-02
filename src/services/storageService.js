@@ -2,12 +2,7 @@ const fs = require('fs');
 
 const { DB_PATH, UPLOAD_DIR } = require('../config');
 const { allDb } = require('../db');
-const {
-  getFileSizeSafe,
-  normalizeStoredFileKey,
-  resolveStoredFilePath,
-  scanDirectorySize,
-} = require('../utils/fileUtils');
+const { getFileSizeSafe, normalizeStoredFileKey, resolveStoredFilePath, scanDirectorySize } = require('../utils/fileUtils');
 
 async function getStorageSummary() {
   const uploadsScan = await scanDirectorySize(UPLOAD_DIR);

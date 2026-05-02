@@ -1,9 +1,6 @@
 const { getDb, allDb, runDb } = require('../db');
 const { requireAdmin } = require('../middleware/requireAdmin');
-const {
-  formatTemplate,
-  normalizeTemplatePayload,
-} = require('../utils/assignmentUtils');
+const { formatTemplate, normalizeTemplatePayload } = require('../utils/assignmentUtils');
 const { msg } = require('../utils/responseUtils');
 
 function registerTemplateRoutes(app) {
@@ -36,11 +33,18 @@ function registerTemplateRoutes(app) {
     try {
       const data = normalizeTemplatePayload(req.body);
       const now = new Date().toISOString();
-      const result = await runDb(
-        'INSERT INTO assignment_templates (name, category, visibility, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-        [data.name, data.category, data.visibility, data.data, now, now]
+      const result = await runDb('INSERT INTO assignment_templates (name, category, visibility, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)', [
+        data.name,
+        data.category,
+        data.visibility,
+        data.data,
+        now,
+        now,
+      ]);
+      const row = await getDb(
+        'SELECT id, name, category, visibility, data, created_at AS createdAt, updated_at AS updatedAt FROM assignment_templates WHERE id = ?',
+        [result.lastID]
       );
-      const row = await getDb('SELECT id, name, category, visibility, data, created_at AS createdAt, updated_at AS updatedAt FROM assignment_templates WHERE id = ?', [result.lastID]);
       res.status(201).json(formatTemplate(row));
     } catch (error) {
       if (error.message === 'TEMPLATE_NAME_REQUIRED') return res.status(400).json({ message: msg('模板名称不能为空') });
@@ -59,7 +63,10 @@ function registerTemplateRoutes(app) {
         [data.name, data.category, data.visibility, data.data, now, req.params.id]
       );
       if (result.changes === 0) return res.status(404).json({ message: msg('模板不存在') });
-      const row = await getDb('SELECT id, name, category, visibility, data, created_at AS createdAt, updated_at AS updatedAt FROM assignment_templates WHERE id = ?', [req.params.id]);
+      const row = await getDb(
+        'SELECT id, name, category, visibility, data, created_at AS createdAt, updated_at AS updatedAt FROM assignment_templates WHERE id = ?',
+        [req.params.id]
+      );
       res.json(formatTemplate(row));
     } catch (error) {
       if (error.message === 'TEMPLATE_NAME_REQUIRED') return res.status(400).json({ message: msg('模板名称不能为空') });
@@ -72,7 +79,12 @@ function registerTemplateRoutes(app) {
   app.delete('/api/templates/:id', requireAdmin, async (req, res) => {
     try {
       const now = new Date().toISOString();
-      const result = await runDb('UPDATE assignment_templates SET deleted_at = ?, delete_source = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL', [now, 'template', now, req.params.id]);
+      const result = await runDb('UPDATE assignment_templates SET deleted_at = ?, delete_source = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL', [
+        now,
+        'template',
+        now,
+        req.params.id,
+      ]);
       if (result.changes === 0) return res.status(404).json({ message: msg('模板不存在') });
       res.json({ message: msg('模板已移入回收站') });
     } catch (error) {

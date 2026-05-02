@@ -22,11 +22,10 @@ body {
   font-size: 14px;
   font-weight: 400;
   line-height: 1.6;
-  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
   background:
     radial-gradient(circle at 15% 10%, rgba(255, 184, 77, 0.35), transparent 28rem),
-    radial-gradient(circle at 85% 20%, rgba(24, 111, 101, 0.24), transparent 26rem),
-    linear-gradient(135deg, #f8f1df 0%, #e8f4ef 55%, #edf5ff 100%);
+    radial-gradient(circle at 85% 20%, rgba(24, 111, 101, 0.24), transparent 26rem), linear-gradient(135deg, #f8f1df 0%, #e8f4ef 55%, #edf5ff 100%);
 }
 
 a {
@@ -610,7 +609,10 @@ textarea:focus {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(242, 249, 246, 0.88));
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .upload-dropzone strong {
@@ -1215,9 +1217,8 @@ tbody tr:last-child td {
   }
 }
 
-
 /* Create task SaaS layout */
-.admin-section[data-section-panel="create"] {
+.admin-section[data-section-panel='create'] {
   overflow: visible;
   background: rgba(255, 255, 255, 0.94);
   border-radius: 28px;
@@ -1265,7 +1266,7 @@ tbody tr:last-child td {
 }
 
 .task-tab.is-active::after {
-  content: "";
+  content: '';
   position: absolute;
   left: 8px;
   right: 8px;
@@ -1348,7 +1349,7 @@ tbody tr:last-child td {
 }
 
 .switch-field i::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 4px;
   left: 4px;
@@ -1551,7 +1552,7 @@ tbody tr:last-child td {
 }
 
 @media (min-width: 1366px) {
-  .admin-section[data-section-panel="create"] {
+  .admin-section[data-section-panel='create'] {
     padding: 46px;
   }
 
@@ -1573,7 +1574,7 @@ tbody tr:last-child td {
 }
 
 /* Create task page refresh 2026-04 */
-.admin-section[data-section-panel="create"] {
+.admin-section[data-section-panel='create'] {
   padding: 24px;
   background: rgba(255, 255, 255, 0.9);
 }
@@ -1754,12 +1755,12 @@ tbody tr:last-child td {
 }
 
 .collect-field-row .edit-icon::after {
-  content: " 编辑";
+  content: ' 编辑';
   font-size: 13px;
 }
 
 .collect-field-row .delete-icon::after {
-  content: " 删除";
+  content: ' 删除';
   font-size: 13px;
 }
 
@@ -1845,7 +1846,7 @@ tbody tr:last-child td {
 }
 
 .tips-card p::before {
-  content: "✓";
+  content: '✓';
   margin-right: 8px;
   color: #0ba764;
   font-weight: 700;
@@ -1884,7 +1885,10 @@ tbody tr:last-child td {
 
 .create-action-buttons button {
   min-width: 136px;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
 }
 
 .create-action-buttons button:active,
@@ -2004,13 +2008,21 @@ body {
   border-radius: 7px;
   font-size: 13px;
   line-height: 1;
-  content: "+";
+  content: '+';
 }
 
-.nav-item[data-admin-section="tasks"]::before { content: "="; }
-.nav-item[data-admin-section="stats"]::before { content: "#"; }
-.nav-item[data-admin-section="submissions"]::before { content: "F"; }
-.nav-item[data-admin-section="recycle"]::before { content: "D"; }
+.nav-item[data-admin-section='tasks']::before {
+  content: '=';
+}
+.nav-item[data-admin-section='stats']::before {
+  content: '#';
+}
+.nav-item[data-admin-section='submissions']::before {
+  content: 'F';
+}
+.nav-item[data-admin-section='recycle']::before {
+  content: 'D';
+}
 
 .nav-item.is-active {
   color: #fff;
@@ -2023,7 +2035,7 @@ body {
 }
 
 .admin-section,
-.admin-section[data-section-panel="create"] {
+.admin-section[data-section-panel='create'] {
   padding: clamp(22px, 3vw, 36px);
   border: 1px solid rgba(23, 35, 58, 0.08);
   border-radius: 8px;
@@ -2099,7 +2111,10 @@ textarea {
 button,
 .download-link {
   border-radius: 8px;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
 }
 
 button:active,
@@ -2233,7 +2248,7 @@ button:active,
   inset: 28px;
   border-radius: 50%;
   background: #fff;
-  content: "";
+  content: '';
 }
 
 .donut strong,
@@ -2518,7 +2533,7 @@ th {
 }
 
 /* Create assignment tabbed workspace */
-.admin-section[data-section-panel="create"] {
+.admin-section[data-section-panel='create'] {
   min-height: calc(100vh - 132px);
   padding-bottom: 24px;
   overflow: visible;
@@ -2646,7 +2661,7 @@ th {
   right: 10px;
   color: var(--accent);
   font-weight: 900;
-  content: "✓";
+  content: '✓';
 }
 
 .create-workspace {
@@ -2794,7 +2809,9 @@ th {
 }
 
 .limit-row {
-  transition: opacity 0.16s ease, filter 0.16s ease;
+  transition:
+    opacity 0.16s ease,
+    filter 0.16s ease;
 }
 
 .limit-row.is-muted,
@@ -2952,7 +2969,7 @@ body {
   overflow-x: hidden;
 }
 
-.admin-section[data-section-panel="create"] {
+.admin-section[data-section-panel='create'] {
   padding: clamp(14px, 1.6vw, 22px);
 }
 
@@ -3311,7 +3328,7 @@ textarea {
 }
 
 /* Create page single-column refinement */
-.admin-section[data-section-panel="create"] {
+.admin-section[data-section-panel='create'] {
   overflow-x: hidden;
 }
 
@@ -3744,12 +3761,12 @@ textarea {
 }
 
 /* Create task action bar and field-name interaction fixes */
-.admin-section[data-section-panel="create"] .create-task-form {
+.admin-section[data-section-panel='create'] .create-task-form {
   min-height: calc(100vh - 226px);
   padding-bottom: 136px;
 }
 
-.admin-section[data-section-panel="create"] .create-action-bar {
+.admin-section[data-section-panel='create'] .create-action-bar {
   position: fixed;
   z-index: 90;
   left: calc(clamp(18px, 3vw, 42px) + 260px + 24px);
@@ -3829,18 +3846,18 @@ textarea {
 }
 
 @media (max-width: 1100px) {
-  .admin-section[data-section-panel="create"] .create-action-bar {
+  .admin-section[data-section-panel='create'] .create-action-bar {
     left: calc(clamp(18px, 3vw, 42px) + 18px);
     right: calc(clamp(18px, 3vw, 42px) + 18px);
   }
 }
 
 @media (max-width: 760px) {
-  .admin-section[data-section-panel="create"] .create-task-form {
+  .admin-section[data-section-panel='create'] .create-task-form {
     padding-bottom: 220px;
   }
 
-  .admin-section[data-section-panel="create"] .create-action-bar {
+  .admin-section[data-section-panel='create'] .create-action-bar {
     left: 0;
     right: 0;
     bottom: 0;
@@ -4104,7 +4121,7 @@ textarea {
   border-radius: 999px;
   background: #9aa8bb;
   transform: rotate(45deg);
-  content: "";
+  content: '';
 }
 
 .assignment-stats-grid {
@@ -4465,7 +4482,9 @@ textarea {
   box-shadow: 0 18px 38px rgba(23, 35, 58, 0.18);
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .cloudnote-toast.is-error {
@@ -4842,7 +4861,7 @@ body.upload-page {
   display: block;
   border-radius: 50%;
   background: inherit;
-  content: "";
+  content: '';
 }
 
 .upload-drop-icon::before {
@@ -5087,12 +5106,12 @@ body.upload-page.upload-invalid-state .upload-status-hint {
   gap: 10px;
 }
 
-.admin-section[data-section-panel="create"] .create-task-form {
+.admin-section[data-section-panel='create'] .create-task-form {
   min-height: auto;
   padding-bottom: 0;
 }
 
-.admin-section[data-section-panel="create"] .create-action-bar {
+.admin-section[data-section-panel='create'] .create-action-bar {
   position: static;
   inset: auto;
   display: flex;
@@ -5147,7 +5166,7 @@ body.upload-page.upload-invalid-state .upload-status-hint {
 }
 
 .deadline-field.is-muted input,
-.is-muted input[aria-disabled="true"] {
+.is-muted input[aria-disabled='true'] {
   color: #8d99aa;
   background: #f3f6f6;
 }
@@ -5249,8 +5268,8 @@ body.upload-page.upload-invalid-state .upload-status-hint {
 }
 
 .collect-field-row .delete-icon.iconfont::before {
-  content: "\e612" !important;
-  font-family: "iconfont" !important;
+  content: '\e612' !important;
+  font-family: 'iconfont' !important;
 }
 
 .collect-field-row .delete-icon:hover {
@@ -5300,7 +5319,7 @@ body.upload-page.upload-invalid-state .upload-status-hint {
 }
 
 @media (max-width: 900px) {
-  .admin-section[data-section-panel="create"] .create-action-bar {
+  .admin-section[data-section-panel='create'] .create-action-bar {
     align-items: stretch;
     flex-direction: column;
   }

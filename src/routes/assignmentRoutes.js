@@ -1,12 +1,4 @@
-const {
-  allDb,
-  beginTransaction,
-  commitTransaction,
-  generateUniqueShareCode,
-  getDb,
-  rollbackTransaction,
-  runDb,
-} = require('../db');
+const { allDb, beginTransaction, commitTransaction, generateUniqueShareCode, getDb, rollbackTransaction, runDb } = require('../db');
 const { requireAdmin } = require('../middleware/requireAdmin');
 const {
   VALID_STATUSES,
@@ -39,10 +31,27 @@ function registerAssignmentRoutes(app) {
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
-              data.title, data.description, data.deadline, data.status, shareCode, now, now, data.fieldConfig,
-              data.allowLate, data.allowRepeat, data.repeatMode, data.maxFiles, data.maxFileSizeMb,
-              data.allowedExtensions, data.renameEnabled, data.renameFields, data.downloadStructure,
-              data.requiredUpload, data.fileType, data.enableLimit, data.allowFolder,
+              data.title,
+              data.description,
+              data.deadline,
+              data.status,
+              shareCode,
+              now,
+              now,
+              data.fieldConfig,
+              data.allowLate,
+              data.allowRepeat,
+              data.repeatMode,
+              data.maxFiles,
+              data.maxFileSizeMb,
+              data.allowedExtensions,
+              data.renameEnabled,
+              data.renameFields,
+              data.downloadStructure,
+              data.requiredUpload,
+              data.fileType,
+              data.enableLimit,
+              data.allowFolder,
             ]
           );
           break;
@@ -77,7 +86,9 @@ function registerAssignmentRoutes(app) {
         if (status === 'expired') {
           whereParts.push("a.status = 'ongoing' AND a.deadline IS NOT NULL AND datetime(a.deadline) < datetime('now')");
         } else if (status === 'completed') {
-          whereParts.push("(a.status IN ('ended', 'archived', 'completed') OR (a.status = 'ongoing' AND a.deadline IS NOT NULL AND datetime(a.deadline) < datetime('now')))");
+          whereParts.push(
+            "(a.status IN ('ended', 'archived', 'completed') OR (a.status = 'ongoing' AND a.deadline IS NOT NULL AND datetime(a.deadline) < datetime('now')))"
+          );
         } else {
           whereParts.push('a.status = ?');
           params.push(normalizeStatus(status));
@@ -100,19 +111,17 @@ function registerAssignmentRoutes(app) {
         }
       }
       const where = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
-      const orderBy = {
-        'created-asc': 'datetime(a.created_at) ASC, a.id ASC',
-        'deadline-asc': 'datetime(COALESCE(a.deadline, "9999-12-31")) ASC, a.id DESC',
-        'deadline-desc': 'datetime(COALESCE(a.deadline, "0001-01-01")) DESC, a.id DESC',
-        'title-asc': 'a.title COLLATE NOCASE ASC, a.id DESC',
-        'title-desc': 'a.title COLLATE NOCASE DESC, a.id DESC',
-        'submissions-desc': 'submissionCount DESC, datetime(a.created_at) DESC',
-      }[sort] || 'datetime(a.created_at) DESC, a.id DESC';
+      const orderBy =
+        {
+          'created-asc': 'datetime(a.created_at) ASC, a.id ASC',
+          'deadline-asc': 'datetime(COALESCE(a.deadline, "9999-12-31")) ASC, a.id DESC',
+          'deadline-desc': 'datetime(COALESCE(a.deadline, "0001-01-01")) DESC, a.id DESC',
+          'title-asc': 'a.title COLLATE NOCASE ASC, a.id DESC',
+          'title-desc': 'a.title COLLATE NOCASE DESC, a.id DESC',
+          'submissions-desc': 'submissionCount DESC, datetime(a.created_at) DESC',
+        }[sort] || 'datetime(a.created_at) DESC, a.id DESC';
       const totalRow = await getDb(`SELECT COUNT(*) AS total FROM assignments a ${where}`, params);
-      const rows = await allDb(
-        `${assignmentSelectSql(where)} GROUP BY a.id ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
-        [...params, perPage, offset]
-      );
+      const rows = await allDb(`${assignmentSelectSql(where)} GROUP BY a.id ORDER BY ${orderBy} LIMIT ? OFFSET ?`, [...params, perPage, offset]);
       res.json({
         items: rows.map(formatAssignment),
         total: totalRow.total,
@@ -175,10 +184,26 @@ function registerAssignmentRoutes(app) {
           WHERE id = ?
         `,
         [
-          data.title, data.description, data.deadline, data.status, new Date().toISOString(), data.fieldConfig,
-          data.allowLate, data.allowRepeat, data.repeatMode, data.maxFiles, data.maxFileSizeMb,
-          data.allowedExtensions, data.renameEnabled, data.renameFields, data.downloadStructure,
-          data.requiredUpload, data.fileType, data.enableLimit, data.allowFolder, req.params.id,
+          data.title,
+          data.description,
+          data.deadline,
+          data.status,
+          new Date().toISOString(),
+          data.fieldConfig,
+          data.allowLate,
+          data.allowRepeat,
+          data.repeatMode,
+          data.maxFiles,
+          data.maxFileSizeMb,
+          data.allowedExtensions,
+          data.renameEnabled,
+          data.renameFields,
+          data.downloadStructure,
+          data.requiredUpload,
+          data.fileType,
+          data.enableLimit,
+          data.allowFolder,
+          req.params.id,
         ]
       );
       if (result.changes === 0) return res.status(404).json({ message: msg('\u4efb\u52a1\u4e0d\u5b58\u5728') });
@@ -199,21 +224,34 @@ function registerAssignmentRoutes(app) {
       if (assignment.status === 'deleted') return res.json({ message: msg('\u4efb\u52a1\u5df2\u5728\u56de\u6536\u7ad9') });
       const submissions = await allDb('SELECT id FROM submissions WHERE assignment_id = ? AND deleted_at IS NULL', [req.params.id]);
       if (submissions.length > 0 && req.query.confirm !== 'true') {
-        return res.status(409).json({ message: msg('\u8be5\u4efb\u52a1\u5df2\u6709\u63d0\u4ea4\u8bb0\u5f55\uff0c\u9700\u8981\u786e\u8ba4\u5220\u9664'), needConfirm: true, submissionCount: submissions.length });
+        return res
+          .status(409)
+          .json({
+            message: msg('\u8be5\u4efb\u52a1\u5df2\u6709\u63d0\u4ea4\u8bb0\u5f55\uff0c\u9700\u8981\u786e\u8ba4\u5220\u9664'),
+            needConfirm: true,
+            submissionCount: submissions.length,
+          });
       }
       const deletedAt = new Date().toISOString();
       await beginTransaction();
       let result;
       try {
-        await runDb('UPDATE submissions SET deleted_at = ?, delete_source = ? WHERE assignment_id = ? AND deleted_at IS NULL', [deletedAt, 'task', req.params.id]);
+        await runDb('UPDATE submissions SET deleted_at = ?, delete_source = ? WHERE assignment_id = ? AND deleted_at IS NULL', [
+          deletedAt,
+          'task',
+          req.params.id,
+        ]);
         await runDb(
           'UPDATE submission_files SET deleted_at = ?, delete_source = ? WHERE deleted_at IS NULL AND (assignment_id = ? OR submission_id IN (SELECT id FROM submissions WHERE assignment_id = ?))',
           [deletedAt, 'task', req.params.id, req.params.id]
         );
-        result = await runDb(
-          "UPDATE assignments SET previous_status = ?, status = 'deleted', deleted_at = ?, delete_source = ?, updated_at = ? WHERE id = ?",
-          [normalizeStatus(assignment.status), deletedAt, 'task', deletedAt, req.params.id]
-        );
+        result = await runDb("UPDATE assignments SET previous_status = ?, status = 'deleted', deleted_at = ?, delete_source = ?, updated_at = ? WHERE id = ?", [
+          normalizeStatus(assignment.status),
+          deletedAt,
+          'task',
+          deletedAt,
+          req.params.id,
+        ]);
         await commitTransaction();
       } catch (error) {
         await rollbackTransaction();

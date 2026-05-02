@@ -1,7 +1,7 @@
 (function (window, document) {
   'use strict';
 
-  const CloudNote = window.CloudNote = window.CloudNote || {};
+  const CloudNote = (window.CloudNote = window.CloudNote || {});
   const common = CloudNote.common || {};
   const api = CloudNote.api || {};
   const $ = common.$ || ((selector) => document.querySelector(selector));
@@ -52,7 +52,9 @@
 
   async function loadPublicConfig() {
     try {
-      const config = api.get ? await api.get('/api/public-config') : await fetch('/api/public-config').then((response) => response.ok ? response.json() : null);
+      const config = api.get
+        ? await api.get('/api/public-config')
+        : await fetch('/api/public-config').then((response) => (response.ok ? response.json() : null));
       if (!config) return;
       if (config.publicBaseUrl) publicBaseUrl = String(config.publicBaseUrl).replace(/\/+$/, '');
       if (Number(config.maxUploadSizeMb) > 0) systemMaxUploadSizeMb = Number(config.maxUploadSizeMb);
@@ -65,11 +67,16 @@
   function splitOptions(value) {
     return Array.isArray(value)
       ? value.map((item) => String(item || '').trim()).filter(Boolean)
-      : String(value || '').split(/[,，\n]/).map((item) => item.trim()).filter(Boolean);
+      : String(value || '')
+          .split(/[,，\n]/)
+          .map((item) => item.trim())
+          .filter(Boolean);
   }
 
   function parseStrictDateParts(value) {
-    const match = String(value || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const match = String(value || '')
+      .trim()
+      .match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!match) return null;
     const year = Number(match[1]);
     const month = Number(match[2]);
@@ -89,7 +96,9 @@
   }
 
   function isValidDateTime(value) {
-    const match = String(value || '').trim().match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})$/);
+    const match = String(value || '')
+      .trim()
+      .match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})$/);
     if (!match || !parseStrictDateParts(match[1])) return false;
     const hour = Number(match[2]);
     const minute = Number(match[3]);
@@ -105,7 +114,10 @@
     if (!parseStrictDateParts(`${text.slice(6, 10)}-${text.slice(10, 12)}-${text.slice(12, 14)}`)) return false;
     const weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
     const codes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
-    const sum = text.slice(0, 17).split('').reduce((total, char, index) => total + Number(char) * weights[index], 0);
+    const sum = text
+      .slice(0, 17)
+      .split('')
+      .reduce((total, char, index) => total + Number(char) * weights[index], 0);
     return codes[sum % 11] === text[17].toUpperCase();
   }
 
@@ -116,15 +128,23 @@
     const options = splitOptions(field.rules?.options || field.options);
     if (field.type === 'single_choice') {
       const choices = options.length ? options : ['选项一', '选项二'];
-      return `<div class="choice-field">${choices.map((option) => `
+      return `<div class="choice-field">${choices
+        .map(
+          (option) => `
         <label><input type="radio" name="${name}" value="${escapeHtml(option)}" ${required}> <span>${escapeHtml(option)}</span></label>
-      `).join('')}</div>`;
+      `
+        )
+        .join('')}</div>`;
     }
     if (field.type === 'multiple_choice') {
       const choices = options.length ? options : ['选项一', '选项二', '选项三'];
-      return `<div class="choice-field">${choices.map((option) => `
+      return `<div class="choice-field">${choices
+        .map(
+          (option) => `
         <label><input type="checkbox" name="${name}" value="${escapeHtml(option)}"> <span>${escapeHtml(option)}</span></label>
-      `).join('')}</div>`;
+      `
+        )
+        .join('')}</div>`;
     }
     if (field.type === 'multi_line') return `<textarea name="${name}" ${required} maxlength="1000" placeholder="${placeholder}"></textarea>`;
     if (field.type === 'birth_date') {
@@ -150,19 +170,29 @@
   function renderDynamicFields(assignment) {
     if (!elements.dynamicFields) return;
     const fields = (assignment.fieldConfig || []).filter((field) => field.enabled !== false && field.visible !== false);
-    elements.dynamicFields.innerHTML = fields.length ? fields.map((field) => `
+    elements.dynamicFields.innerHTML = fields.length
+      ? fields
+          .map(
+            (field) => `
       <label class="upload-field" data-dynamic-field="${escapeHtml(field.key)}" data-required="${field.required ? 'true' : 'false'}">
         <span>${escapeHtml(field.label)}${field.required ? '<em>*</em>' : ''}</span>
         ${fieldInputHtml(field)}
         ${field.helpText ? `<small class="input-hint">${escapeHtml(field.helpText)}</small>` : ''}
         <small class="field-error is-hidden">${escapeHtml(field.label)}不能为空</small>
       </label>
-    `).join('') : '<div class="upload-empty-note">本任务无需填写额外信息。</div>';
+    `
+          )
+          .join('')
+      : '<div class="upload-empty-note">本任务无需填写额外信息。</div>';
   }
 
   function getUploadFieldValue(key, type) {
     const controls = [...(elements.uploadForm?.querySelectorAll(`[name="${CSS.escape(key)}"]`) || [])];
-    if (type === 'checkbox' || type === 'multiple_choice') return controls.filter((input) => input.checked).map((input) => input.value).join(', ');
+    if (type === 'checkbox' || type === 'multiple_choice')
+      return controls
+        .filter((input) => input.checked)
+        .map((input) => input.value)
+        .join(', ');
     if (type === 'radio' || type === 'single_choice') return controls.find((input) => input.checked)?.value || '';
     const input = elements.uploadForm?.elements[key];
     return String(input?.value || '').trim();
@@ -211,9 +241,7 @@
     const maxFiles = getEffectiveMaxFiles();
     const maxFileSizeMb = getEffectiveMaxFileSizeMb();
     if (fileList.length > maxFiles) {
-      return currentAssignment.enableLimit
-        ? `文件数量超过限制，最多只能上传 ${maxFiles} 个文件`
-        : `文件数量超过系统限制，最多只能上传 ${maxFiles} 个文件`;
+      return currentAssignment.enableLimit ? `文件数量超过限制，最多只能上传 ${maxFiles} 个文件` : `文件数量超过系统限制，最多只能上传 ${maxFiles} 个文件`;
     }
     const allowed = new Set((currentAssignment.allowedExtensions || []).map((item) => item.toLowerCase()));
     for (const file of fileList) {
@@ -241,13 +269,17 @@
       elements.selectedFileList.innerHTML = `${header}<div class="upload-empty-note">尚未选择文件</div>`;
       return;
     }
-    elements.selectedFileList.innerHTML = `${header}<div class="selected-files-body">${selectedFiles.map((file, index) => `
+    elements.selectedFileList.innerHTML = `${header}<div class="selected-files-body">${selectedFiles
+      .map(
+        (file, index) => `
       <div class="selected-file">
         <span title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
         <strong>${formatSize(file.size)}</strong>
         <button class="secondary-button compact-button" type="button" data-remove-file="${index}">删除</button>
       </div>
-    `).join('')}</div>`;
+    `
+      )
+      .join('')}</div>`;
   }
 
   function handleSelectedFiles(files, { append = false } = {}) {
@@ -278,11 +310,18 @@
       if (error) error.classList.add('is-hidden');
       if (field.required && !value) {
         if (error) error.classList.remove('is-hidden');
-        debugRecord('assignment:fieldValidationFailed', { target: wrapper, message: `${field.label}不能为空`, fieldKey: field.key, fieldType: field.type, fieldLabel: field.label });
+        debugRecord('assignment:fieldValidationFailed', {
+          target: wrapper,
+          message: `${field.label}不能为空`,
+          fieldKey: field.key,
+          fieldType: field.type,
+          fieldLabel: field.label,
+        });
         throw new Error(`${field.label}不能为空`);
       }
       if (!value) continue;
-      if (field.type === 'name' && !(/^[\u4e00-\u9fa5]{1,5}$/.test(value) || (/^[A-Za-z\s]{1,20}$/.test(value) && /[A-Za-z]/.test(value)))) throw new Error(`${field.label}格式不正确`);
+      if (field.type === 'name' && !(/^[\u4e00-\u9fa5]{1,5}$/.test(value) || (/^[A-Za-z\s]{1,20}$/.test(value) && /[A-Za-z]/.test(value))))
+        throw new Error(`${field.label}格式不正确`);
       if (field.type === 'phone' && !/^1[3-9]\d{9}$/.test(value)) throw new Error(`${field.label}格式不正确`);
       if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) throw new Error(`${field.label}格式不正确`);
       if (field.type === 'idcard' && !isValidIdCard(value)) throw new Error(`${field.label}格式不正确`);
@@ -380,17 +419,21 @@
   }
 
   function getUploadStatusLabel(status) {
-    return {
-      ongoing: '进行中',
-      expired: '已截止',
-      ended: '已结束',
-      archived: '已归档',
-      deleted: '已删除',
-    }[status] || getStatusLabel(status);
+    return (
+      {
+        ongoing: '进行中',
+        expired: '已截止',
+        ended: '已结束',
+        archived: '已归档',
+        deleted: '已删除',
+      }[status] || getStatusLabel(status)
+    );
   }
 
   function setUploadFormDisabled(disabled) {
-    elements.uploadForm?.querySelectorAll('input, textarea, button').forEach((element) => { element.disabled = disabled; });
+    elements.uploadForm?.querySelectorAll('input, textarea, button').forEach((element) => {
+      element.disabled = disabled;
+    });
   }
 
   function renderAssignmentInfo(assignment) {
@@ -458,16 +501,14 @@
     }
     elements.assignmentIdField.value = assignmentId || '';
     try {
-      const query = shareCode
-        ? `code=${encodeURIComponent(shareCode)}`
-        : `id=${encodeURIComponent(assignmentId)}`;
+      const query = shareCode ? `code=${encodeURIComponent(shareCode)}` : `id=${encodeURIComponent(assignmentId)}`;
       const assignment = api.get
         ? await api.get(`/api/public-assignment?${query}`, { fallbackMessage: '任务不存在或链接无效' })
         : await fetch(`/api/public-assignment?${query}`).then(async (response) => {
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.message || '任务不存在或链接无效');
-          return data;
-        });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || '任务不存在或链接无效');
+            return data;
+          });
       currentAssignment = assignment;
       uploadSubmittedOnce = false;
       restoreAssignmentIdField();
@@ -477,7 +518,11 @@
       syncFileInputRequired();
       updateFileRules();
       renderSelectedFiles();
-      debugRecord('assignment:loadSuccess', { message: '任务加载成功', assignmentId: assignment.id, status: assignment.effectiveStatus || assignment.status || '' });
+      debugRecord('assignment:loadSuccess', {
+        message: '任务加载成功',
+        assignmentId: assignment.id,
+        status: assignment.effectiveStatus || assignment.status || '',
+      });
       if (assignment.effectiveStatus !== 'ongoing' && !(assignment.effectiveStatus === 'expired' && assignment.allowLate)) {
         setUploadFormDisabled(true);
         setMessage(elements.uploadMessage, getBlockedSubmitMessage(assignment), 'error');
@@ -487,9 +532,7 @@
         setMessage(elements.uploadMessage, '');
       }
     } catch (error) {
-      const friendlyMessage = error.message && !/failed to fetch|network|网络请求失败/i.test(error.message)
-        ? error.message
-        : '任务加载失败，请稍后重试';
+      const friendlyMessage = error.message && !/failed to fetch|network|网络请求失败/i.test(error.message) ? error.message : '任务加载失败，请稍后重试';
       showUploadLoadError(friendlyMessage);
     }
   }
