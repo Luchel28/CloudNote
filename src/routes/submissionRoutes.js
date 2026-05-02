@@ -1,8 +1,9 @@
-const { allDb, getDb } = require('../db');
+const { allDb, getDb, runDb } = require('../db');
 const { requireAdmin } = require('../middleware/requireAdmin');
 const { softDeleteSubmissionWithFiles } = require('../services/recycleService');
 const { normalizeFieldConfig, parseJson } = require('../utils/assignmentUtils');
 const { rowsToCsv } = require('../utils/csvUtils');
+const { removeStoredFile } = require('../utils/fileUtils');
 const { parsePage, parsePerPage } = require('../utils/paginationUtils');
 const { msg } = require('../utils/responseUtils');
 
@@ -231,6 +232,37 @@ function registerSubmissionRoutes(app) {
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: msg('\u5220\u9664\u63d0\u4ea4\u8bb0\u5f55\u5931\u8d25') });
+    }
+  });
+
+  app.post('/api/submissions/bulk-delete', requireAdmin, async (req, res) => {
+    try {
+      const ids = (req.body.ids || []).map((id) => Number(id)).filter(Number.isInteger);
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      // Fetch file paths before deleting to clean up physical files
+      const files = await allDb(
+        `SELECT sf.id, sf.stored_filename, sf.submission_id
+         FROM submission_files sf
+         WHERE sf.submission_id IN (${ids.map(() => '?').join(',')}) AND sf.deleted_at IS NULL`,
+        ids
+      );
+      for (const file of files) {
+        removeStoredFile(file.stored_filename);
+      }
+      // Soft-delete submissions and files
+      const now = new Date().toISOString();
+      await runDb(
+        `UPDATE submissions SET deleted_at = ?, delete_source = 'submission' WHERE id IN (${ids.map(() => '?').join(',')}) AND deleted_at IS NULL`,
+        [now, ...ids]
+      );
+      await runDb(
+        `UPDATE submission_files SET deleted_at = ?, delete_source = 'submission' WHERE submission_id IN (${ids.map(() => '?').join(',')}) AND deleted_at IS NULL`,
+        [now, ...ids]
+      );
+      res.json({ deleted: ids.length });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: msg('\u6279\u91cf\u5220\u9664\u5931\u8d25') });
     }
   });
 }

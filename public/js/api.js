@@ -111,11 +111,14 @@
 
   async function downloadBlob(url, filename, options = {}) {
     const response = await apiFetch(url, options);
+    const disposition = response.headers.get('Content-Disposition') || '';
+    const match = disposition.match(/filename\*?=(?:UTF-8'')?([^;\s]+)/i);
+    const serverFilename = match ? decodeURIComponent(match[1]) : filename;
     const blob = await response.blob();
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = objectUrl;
-    link.download = filename;
+    link.download = serverFilename || filename || 'download';
     document.body.appendChild(link);
     link.click();
     link.remove();

@@ -78,11 +78,13 @@
       .map((item) => {
         const count = Number(item.count || 0);
         const height = Math.max(8, Math.round((count / max) * 100));
+        const label = String(item.day || '').slice(5);
         return `
-        <div class="trend-bar-item" title="${escapeHtml(item.day)}: ${count}">
+        <div class="trend-bar-item">
+          <span class="trend-tooltip">${escapeHtml(item.day)}：${count}份</span>
           <strong class="trend-bar-value">${count}</strong>
           <div class="trend-bar-track"><span style="height:${height}%"></span></div>
-          <small>${escapeHtml(String(item.day || '').slice(5))}</small>
+          <small>${escapeHtml(label)}</small>
         </div>
       `;
       })

@@ -127,59 +127,76 @@
     if (!items.length) {
       if (tableHead) {
         tableHead.innerHTML = `
-          <tr><th>序号</th><th>所属任务</th><th>提交人</th><th>提交文件</th><th>上传时间</th><th>是否逾期</th><th>删除</th></tr>`;
+          <tr><th><input type="checkbox" id="selectAllSubmissions" aria-label="全选"></th><th>序号</th><th>所属任务</th><th>提交人</th><th>上传时间</th><th>原文件名</th><th>文件名</th><th>是否逾期</th><th>操作</th></tr>`;
       }
-      submissionTable.innerHTML = '<tr><td colspan="7" class="empty-cell">暂无提交记录</td></tr>';
+      submissionTable.innerHTML = '<tr><td colspan="9" class="empty-cell">暂无提交记录</td></tr>';
       return;
     }
-    const dynamicKeys = [...new Set(items.flatMap((item) => Object.keys(item.submitterData || {})))];
-    const dynamicLabels = Object.fromEntries(dynamicKeys.map((key) => [key, resolveSubmitterLabel(key, items, dynamicKeys)]));
     if (tableHead) {
       tableHead.innerHTML = `
         <tr>
-          <th>序号</th><th>所属任务</th>
-          ${dynamicKeys.map((key) => `<th class="submission-dynamic-heading">${escapeHtml(dynamicLabels[key])}</th>`).join('')}
-          <th>提交文件</th><th>上传时间</th><th>是否逾期</th><th>删除</th>
+          <th><input type="checkbox" id="selectAllSubmissions" aria-label="全选"></th>
+          <th>序号</th><th>所属任务</th><th>提交人</th><th>上传时间</th><th>原文件名</th><th>文件名</th><th>是否逾期</th><th>操作</th>
         </tr>`;
     }
     submissionTable.innerHTML = items
       .map(
-        (item, index) => `
+        (item, index) => {
+          const submitterName = item.submitterData?.studentName || item.studentName || '';
+          const isLate = item.isLate ? true : false;
+          const badgeHtml = isLate
+            ? '<span class="badge badge-danger">逾期</span>'
+            : '<span class="badge badge-success">按时</span>';
+          const fileList = item.files || [];
+          const displayFiles = fileList.length ? fileList : [{ id: null, originalFilename: item.originalFilename || '', storedFilename: item.storedFilename || '' }];
+          const fileCells = displayFiles.map((file) => {
+            const fileName = file.originalFilename || '';
+            const downloadBtn = file.id
+              ? `<button class="icon-mini-button" type="button" data-file-download-id="${file.id}" data-file-name="${escapeHtml(fileName)}" title="下载文件">下载</button>`
+              : '';
+            const deleteBtn = file.id
+              ? `<button class="icon-mini-button danger-mini" type="button" data-file-delete-id="${file.id}" title="删除文件">删</button>`
+              : '';
+            return `<span class="file-action-chip"><span>${escapeHtml(fileName)}</span>${downloadBtn}${deleteBtn}</span>`;
+          }).join('');
+          return `
       <tr>
+        <td><input type="checkbox" class="submission-select" data-submission-id="${item.id}" aria-label="选择提交记录"></td>
         <td>${(page - 1) * perPage + index + 1}</td>
         <td class="submission-assignment-cell" title="${escapeHtml(item.assignmentTitle || '')}">${escapeHtml(item.assignmentTitle || '未分配任务')}</td>
-        ${dynamicKeys
-          .map((key) => {
-            const value = item.submitterData?.[key] ?? '';
-            return `<td class="submission-dynamic-cell" title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
-          })
-          .join('')}
-        <td class="submission-files-cell">
-          <div class="file-action-list submission-file-actions">
-            ${
-              (item.files || []).length
-                ? item.files
-                    .map(
-                      (file) => `
-              <span class="file-action-chip">
-                <span>${escapeHtml(file.originalFilename)}</span>
-                <button class="icon-mini-button" type="button" data-file-download-id="${file.id}" data-file-name="${escapeHtml(file.originalFilename)}" title="下载文件">下载</button>
-                <button class="icon-mini-button danger-mini" type="button" data-file-delete-id="${file.id}" title="删除文件">删除</button>
-              </span>
-            `
-                    )
-                    .join('')
-                : escapeHtml(item.originalFilename || '')
-            }
-          </div>
-        </td>
+        <td>${escapeHtml(submitterName)}</td>
         <td>${formatTime(item.uploadTime)}</td>
-        <td><span class="status-badge ${item.isLate ? 'status-deleted' : 'status-ongoing'}">${item.isLate ? '是' : '否'}</span></td>
-        <td><button class="danger-button compact-button" type="button" data-delete-id="${item.id}">删除记录</button></td>
-      </tr>
-    `
+        <td>${escapeHtml(item.originalFilename || '')}</td>
+        <td>${escapeHtml(fileList.map((f) => f.originalFilename).join('; ') || item.originalFilename || '')}</td>
+        <td>${badgeHtml}</td>
+        <td>
+          <div class="submission-file-actions">
+            ${fileCells}
+          </div>
+          <button class="danger-button compact-button" type="button" style="margin-top:4px" data-delete-id="${item.id}">删除记录</button>
+        </td>
+      </tr>`;
+        }
       )
       .join('');
+    // Bind select all
+    const selectAll = document.getElementById('selectAllSubmissions');
+    if (selectAll) {
+      selectAll.addEventListener('change', function () {
+        document.querySelectorAll('.submission-select').forEach((cb) => { cb.checked = this.checked; });
+        updateBulkDeleteButton();
+      });
+    }
+    document.querySelectorAll('.submission-select').forEach((cb) => {
+      cb.addEventListener('change', updateBulkDeleteButton);
+    });
+  }
+
+  function updateBulkDeleteButton() {
+    const btn = document.getElementById('bulkDeleteSubmissions');
+    if (!btn) return;
+    const checked = document.querySelectorAll('.submission-select:checked').length;
+    btn.disabled = checked === 0;
   }
 
   async function load() {
@@ -369,6 +386,22 @@
     viewAllButton?.addEventListener('click', clearAssignmentFilter);
     downloadAllButton?.addEventListener('click', downloadAll);
     exportSubmissionsButton?.addEventListener('click', exportCsv);
+    document.getElementById('bulkDeleteSubmissions')?.addEventListener('click', bulkDeleteSubmissions);
+  }
+
+  async function bulkDeleteSubmissions() {
+    const checked = [...document.querySelectorAll('.submission-select:checked')];
+    if (!checked.length) return;
+    if (!(await showConfirmDialog({ title: '批量删除', message: `确定删除选中的 ${checked.length} 条提交记录？文件将被移入回收站。`, confirmText: '删除', variant: 'danger' }))) return;
+    const ids = checked.map((cb) => cb.dataset.submissionId);
+    const { adminMessage } = getElements();
+    try {
+      const result = await api.adminPost('/api/submissions/bulk-delete', { ids });
+      setMessage(adminMessage, `已删除 ${result.deleted} 条记录`, 'success');
+      refreshAfterSubmissionChange();
+    } catch (error) {
+      setMessage(adminMessage, error.message, 'error');
+    }
   }
 
   function init() {

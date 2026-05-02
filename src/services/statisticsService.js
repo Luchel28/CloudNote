@@ -2,7 +2,7 @@ const { allDb, getDb } = require('../db');
 const { addEffectiveStatusFilter, getEffectiveStatus, normalizeStatus } = require('../utils/assignmentUtils');
 
 async function getStatistics({ assignmentId = null, status = '', dateFrom = '', dateTo = '' } = {}) {
-  const whereParts = ["a.status != 'deleted'"];
+  const whereParts = status === 'deleted' ? [] : ["a.status != 'deleted'"];
   const whereParams = [];
   const joinParts = ['s.assignment_id = a.id', 's.deleted_at IS NULL'];
   const joinParams = [];
@@ -60,7 +60,8 @@ async function getStatistics({ assignmentId = null, status = '', dateFrom = '', 
 }
 
 async function getSubmissionTrend({ assignmentId = null, status = '', dateFrom = '', dateTo = '' } = {}) {
-  const where = ['s.deleted_at IS NULL', "(a.id IS NULL OR a.status != 'deleted')"];
+  const where = ['s.deleted_at IS NULL'];
+  if (status !== 'deleted') where.push("(a.id IS NULL OR a.status != 'deleted')");
   const params = [];
   if (assignmentId) {
     where.push('s.assignment_id = ?');
@@ -90,7 +91,8 @@ async function getSubmissionTrend({ assignmentId = null, status = '', dateFrom =
 }
 
 async function getTotalSubmitterCount({ assignmentId = null, status = '', dateFrom = '', dateTo = '' } = {}) {
-  const where = ['s.deleted_at IS NULL', "a.status != 'deleted'"];
+  const where = ['s.deleted_at IS NULL'];
+  if (status !== 'deleted') where.push("a.status != 'deleted'");
   const params = [];
   if (assignmentId) {
     where.push('a.id = ?');

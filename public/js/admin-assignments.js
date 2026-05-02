@@ -31,6 +31,7 @@
   let assignmentPage = 1;
   let assignmentTotalPages = 1;
   let assignmentPerPage = 10;
+  let currentStatusFilter = '';
   let assignmentSearchTimer = null;
   let lastAssignments = [];
 
@@ -62,7 +63,6 @@
     return {
       assignmentList: $('#assignmentList'),
       assignmentCount: $('#assignmentCount'),
-      assignmentStatusFilter: $('#assignmentStatusFilter'),
       assignmentSearchInput: $('#assignmentSearchInput'),
       assignmentSortSelect: $('#assignmentSortSelect'),
       assignmentStats: $('#assignmentStats'),
@@ -254,7 +254,6 @@
     const {
       assignmentList,
       assignmentCount,
-      assignmentStatusFilter,
       assignmentSearchInput,
       assignmentSortSelect,
       assignmentPagination,
@@ -265,11 +264,10 @@
     await formModule()
       .loadPublicConfig?.()
       .catch?.(() => {});
-    const statusValue = assignmentStatusFilter?.value || '';
     assignmentPerPage = Number(assignmentPerPageSelect?.value || assignmentPerPage || 10);
     assignmentList.innerHTML = '<div class="empty-card loading-card">正在加载任务...</div>';
     const params = new URLSearchParams({ page: assignmentPage, perPage: assignmentPerPage });
-    if (statusValue) params.set('status', statusValue);
+    if (currentStatusFilter) params.set('status', currentStatusFilter);
     if (assignmentSearchInput?.value) params.set('search', assignmentSearchInput.value);
     if (assignmentSortSelect?.value) params.set('sort', assignmentSortSelect.value);
     try {
@@ -282,7 +280,7 @@
       if (data.items?.length) {
         render(data.items);
       } else {
-        const hasFilter = Boolean(statusValue || assignmentSearchInput?.value);
+        const hasFilter = Boolean(currentStatusFilter || assignmentSearchInput?.value);
         assignmentList.innerHTML = hasFilter
           ? `
           <div class="empty-card assignment-empty-state">
@@ -419,7 +417,7 @@
   }
 
   function bindEvents() {
-    const { assignmentList, assignmentStatusFilter, assignmentSearchInput, assignmentSortSelect, assignmentPerPageSelect, assignmentStats, assignmentMessage } =
+    const { assignmentList, assignmentSearchInput, assignmentSortSelect, assignmentPerPageSelect, assignmentStats, assignmentMessage } =
       getElements();
 
     assignmentList?.addEventListener('click', async (event) => {
@@ -438,7 +436,8 @@
         }
         if (clearButton) {
           if (assignmentSearchInput) assignmentSearchInput.value = '';
-          if (assignmentStatusFilter) assignmentStatusFilter.value = '';
+          currentStatusFilter = '';
+          document.querySelectorAll('#assignmentStats [data-stat-status]').forEach((c) => c.classList.remove('is-active'));
           assignmentPage = 1;
           load();
           return;
@@ -464,10 +463,6 @@
       }
     });
 
-    assignmentStatusFilter?.addEventListener('change', () => {
-      assignmentPage = 1;
-      load();
-    });
     assignmentSearchInput?.addEventListener('input', () => {
       window.clearTimeout(assignmentSearchTimer);
       assignmentSearchTimer = window.setTimeout(() => {
@@ -485,8 +480,10 @@
     });
     assignmentStats?.addEventListener('click', (event) => {
       const card = event.target.closest('[data-stat-status]');
-      if (!card || !assignmentStatusFilter) return;
-      assignmentStatusFilter.value = card.dataset.statStatus || '';
+      if (!card) return;
+      const status = card.dataset.statStatus || '';
+      currentStatusFilter = currentStatusFilter === status ? '' : status;
+      assignmentStats.querySelectorAll('[data-stat-status]').forEach((c) => c.classList.toggle('is-active', c.dataset.statStatus === currentStatusFilter));
       assignmentPage = 1;
       load();
     });
