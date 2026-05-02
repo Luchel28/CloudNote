@@ -30,192 +30,157 @@
   }
 
   function showAdminPanel() {
-    let _a, _b;
-    (_a = $('#loginPanel')) === null || _a === void 0 ? void 0 : _a.classList.add('is-hidden');
-    (_b = $('#adminPanel')) === null || _b === void 0 ? void 0 : _b.classList.remove('is-hidden');
+    $('#loginPanel')?.classList.add('is-hidden');
+    $('#adminPanel')?.classList.remove('is-hidden');
   }
 
   function showLoginPanel() {
-    let _a, _b;
-    (_a = $('#adminPanel')) === null || _a === void 0 ? void 0 : _a.classList.add('is-hidden');
-    (_b = $('#loginPanel')) === null || _b === void 0 ? void 0 : _b.classList.remove('is-hidden');
+    $('#adminPanel')?.classList.add('is-hidden');
+    $('#loginPanel')?.classList.remove('is-hidden');
   }
 
   function loadAssignments() {
-    let _a;
-    return (_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.load();
+    return CloudNote.adminAssignments?.load?.();
   }
 
   function refreshAssignments() {
-    let _a;
-    return (_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.refresh();
+    return CloudNote.adminAssignments?.refresh?.();
   }
 
   function loadAssignmentOptions() {
-    let _a;
-    return (_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.loadAssignmentOptions();
+    return CloudNote.adminAssignments?.loadAssignmentOptions?.();
   }
 
   function renderAssignmentSelectors(items) {
-    let _a;
-    return (_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.renderAssignmentSelectors(items);
+    return CloudNote.adminAssignments?.renderAssignmentSelectors?.(items);
   }
 
   function fetchAssignmentPages(status, sort) {
-    let _a;
-    return (_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.fetchAssignmentPages(status, sort);
+    return CloudNote.adminAssignments?.fetchAssignmentPages?.(status, sort);
   }
 
   function renderAssignmentStats() {
-    let _a;
-    return (_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.renderAssignmentStats();
+    return CloudNote.adminAssignments?.renderAssignmentStats?.();
   }
 
   function renderAssignmentCard(item) {
-    let _a;
-    return ((_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.renderAssignmentCard(item)) || '';
+    return CloudNote.adminAssignments?.renderAssignmentCard?.(item) || '';
   }
 
   function editAssignment(id) {
-    let _a;
-    return (_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.editAssignment(id);
+    return CloudNote.adminAssignmentForm?.editAssignment?.(id);
   }
 
   function deleteAssignment(id) {
-    let _a;
-    return (_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.deleteAssignment(id);
+    return CloudNote.adminAssignments?.deleteAssignment?.(id);
   }
 
   function copyTaskLink(urlOrId) {
-    let _a;
-    return (_a = CloudNote.adminAssignments) === null || _a === void 0 ? void 0 : _a.copyLink(urlOrId);
+    return CloudNote.adminAssignments?.copyLink?.(urlOrId);
   }
 
   function getAssignmentUrl(assignment) {
-    let _a, _b;
     return (
-      ((_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.getAssignmentUrl(assignment)) ||
-      ((_b = CloudNote.adminAssignments) === null || _b === void 0 ? void 0 : _b.getAssignmentUrl(assignment)) ||
-      (common.buildAssignmentLink ? common.buildAssignmentLink(assignment) : undefined)
+      CloudNote.adminAssignmentForm?.getAssignmentUrl?.(assignment) ||
+      CloudNote.adminAssignments?.getAssignmentUrl?.(assignment) ||
+      common.buildAssignmentLink?.(assignment)
     );
   }
 
   function loadTemplates() {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.load();
+    return CloudNote.adminTemplates?.load?.();
   }
 
   function renderTemplateList(items) {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.render(items);
+    return CloudNote.adminTemplates?.render?.(items);
   }
 
   function loadServerTemplates() {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.load();
+    return CloudNote.adminTemplates?.load?.();
   }
 
   function getStoredTemplates() {
-    let _a;
-    return ((_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.getStoredTemplates()) || [];
+    return CloudNote.adminTemplates?.getStoredTemplates?.() || [];
   }
 
   function persistTemplates(templates) {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.persistTemplates(templates);
+    return CloudNote.adminTemplates?.persistTemplates?.(templates);
   }
 
   function normalizeTemplateRecord(template, index) {
-    let _a;
-    return ((_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.normalizeTemplateRecord(template, index)) || template;
+    return CloudNote.adminTemplates?.normalizeTemplateRecord?.(template, index) || template;
   }
 
   function saveTemplateFromSnapshot(snapshot, options) {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.saveFromSnapshot(snapshot, options);
+    return CloudNote.adminTemplates?.saveFromSnapshot?.(snapshot, options);
   }
 
   function applyTemplate(id) {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.applyTemplate(id);
+    return CloudNote.adminTemplates?.applyTemplate?.(id);
   }
 
   function deleteTemplate(id) {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.deleteTemplate(id);
+    return CloudNote.adminTemplates?.deleteTemplate?.(id);
   }
 
   function saveAssignmentTemplate() {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.saveFromCurrentForm();
+    return CloudNote.adminTemplates?.saveFromCurrentForm?.();
   }
 
   function applyLatestTemplate() {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.applyLatestTemplate();
+    return CloudNote.adminTemplates?.applyLatestTemplate?.();
   }
 
   function manageTemplates() {
-    let _a;
-    return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.manageTemplates();
+    return CloudNote.adminTemplates?.manageTemplates?.();
   }
 
   function resetForm() {
-    let _a;
-    return (_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.reset();
+    return CloudNote.adminAssignmentForm?.reset?.();
   }
 
   function resetAssignmentForm() {
-    let _a;
-    return (_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.reset();
+    return CloudNote.adminAssignmentForm?.reset?.();
   }
 
   function fillAssignmentForm(item) {
-    let _a;
-    return (_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.fillAssignmentForm(item);
+    return CloudNote.adminAssignmentForm?.fillAssignmentForm?.(item);
   }
 
   function getFieldConfigFromForm() {
-    let _a;
-    return ((_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.getFieldConfigFromForm()) || [];
+    return CloudNote.adminAssignmentForm?.getFieldConfigFromForm?.() || [];
   }
 
   function renderFieldConfig(fields) {
-    let _a;
-    return (_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.renderFields(fields);
+    return CloudNote.adminAssignmentForm?.renderFields?.(fields);
   }
 
   function addCollectField(type, label) {
-    let _a;
-    return (_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.addField(type, label);
+    return CloudNote.adminAssignmentForm?.addField?.(type, label);
   }
 
   function loadSubmissions() {
-    let _a;
-    return (_a = CloudNote.adminSubmissions) === null || _a === void 0 ? void 0 : _a.load();
+    return CloudNote.adminSubmissions?.load?.();
   }
 
   function loadStatistics() {
-    let _a;
-    return (_a = CloudNote.adminStatistics) === null || _a === void 0 ? void 0 : _a.load();
+    return CloudNote.adminStatistics?.load?.();
   }
 
   function loadRecycleBin() {
-    let _a;
-    return (_a = CloudNote.adminRecycle) === null || _a === void 0 ? void 0 : _a.load();
+    return CloudNote.adminRecycle?.load?.();
   }
 
   function renderStorageSummary() {
-    let _a;
-    return (_a = CloudNote.adminStorage) === null || _a === void 0 ? void 0 : _a.render();
+    return CloudNote.adminStorage?.render?.();
   }
 
   function switchAdminSection(section) {
-    const _a = getElements(), adminNavItems = _a.adminNavItems, adminSectionPanels = _a.adminSectionPanels;
-    adminNavItems.forEach(function (button) {
+    const { adminNavItems, adminSectionPanels } = getElements();
+    adminNavItems.forEach((button) => {
       button.classList.toggle('is-active', button.dataset.adminSection === section);
     });
-    adminSectionPanels.forEach(function (panel) {
+    adminSectionPanels.forEach((panel) => {
       panel.classList.toggle('is-hidden', panel.dataset.sectionPanel !== section);
     });
 
@@ -223,71 +188,67 @@
     if (section === 'stats') loadStatistics();
     if (section === 'submissions') loadSubmissions();
     if (section === 'recycle') loadRecycleBin();
-    debugRecord('admin:menuSwitch', { message: '切换到 ' + section, section: section });
+    debugRecord('admin:menuSwitch', { message: `切换到 ${section}`, section });
   }
 
-  function refreshAdminData() {
-    let _a, _b, _c, _d, _e;
-    (_a = CloudNote.adminAssignmentForm) === null || _a === void 0 ? void 0 : _a.loadPublicConfig().catch(function () {});
-    (_b = CloudNote.adminStorage) === null || _b === void 0 ? void 0 : _b.render();
-    (_c = CloudNote.adminTemplates) === null || _c === void 0 ? void 0 : _c.load().catch(function () {});
-    (_d = CloudNote.adminAssignments) === null || _d === void 0 ? void 0 : _d.load();
-    (_e = CloudNote.adminAssignments) === null || _e === void 0 ? void 0 : _e.loadAssignmentOptions();
-    CloudNote.adminStatistics && CloudNote.adminStatistics.load();
-    CloudNote.adminSubmissions && CloudNote.adminSubmissions.load();
-    debugRecord('admin:refreshAll', { message: 'refresh admin data and storage' });
+  async function refreshAdminData() {
+    await CloudNote.adminAssignmentForm?.loadPublicConfig?.().catch?.(() => {});
+    CloudNote.adminStorage?.render?.();
+    CloudNote.adminTemplates?.load?.().catch?.(() => {});
+    CloudNote.adminAssignments?.load?.();
+    CloudNote.adminAssignments?.loadAssignmentOptions?.();
+    CloudNote.adminStatistics?.load?.();
+    CloudNote.adminSubmissions?.load?.();
+    debugRecord('admin:refreshAll', { message: '刷新后台数据与存储空间' });
   }
 
-  function loginAdminWithPassword(password) {
-    return api.post('/api/admin/login', { password: password }).then(function (result) {
-      let _a;
-      (_a = api.setAdminToken) === null || _a === void 0 ? void 0 : _a.call(api, result.token);
-      let _b;
-      (_b = CloudNote.adminAssignmentForm) === null || _b === void 0 ? void 0 : _b.loadPublicConfig().catch(function () {});
-      showAdminPanel();
-      refreshAdminData();
-      debugRecord('admin:loginSuccess', { message: 'login success' });
-    });
+  async function loginAdminWithPassword(password) {
+    const result = await api.post('/api/admin/login', { password });
+    api.setAdminToken?.(result.token);
+    await CloudNote.adminAssignmentForm?.loadPublicConfig?.().catch?.(() => {});
+    showAdminPanel();
+    refreshAdminData();
+    debugRecord('admin:loginSuccess', { message: '登录成功' });
   }
 
   function cleanPasswordFromUrl() {
     const url = new URL(window.location.href);
     if (!url.searchParams.has('password')) return;
     url.searchParams.delete('password');
-    window.history.replaceState({}, document.title, '' + url.pathname + url.search + url.hash);
+    window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
   }
 
   function configureHooks() {
     CloudNote.adminRecycleHooks = {
-      getStoredTemplates: function () { let _a; return ((_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.getStoredTemplates()) || []; },
-      persistTemplates: function (templates) { let _a; return (_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.persistTemplates(templates); },
-      normalizeTemplateRecord: function (template) { let _a; return ((_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.normalizeTemplateRecord(template)) || template; },
-      renderTemplateList: renderTemplateList,
-      loadAssignments: loadAssignments,
-      loadAssignmentOptions: loadAssignmentOptions,
-      loadSubmissions: loadSubmissions,
-      loadStatistics: loadStatistics,
-      renderStorageSummary: renderStorageSummary,
-      getCategoryLabel: function (category) { let _a; return ((_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.getCategoryLabel(category)) || category; },
-      getVisibilityLabel: function (visibility) { let _a; return ((_a = CloudNote.adminTemplates) === null || _a === void 0 ? void 0 : _a.getVisibilityLabel(visibility)) || visibility; },
+      getStoredTemplates: () => CloudNote.adminTemplates?.getStoredTemplates?.() || [],
+      persistTemplates: (templates) => CloudNote.adminTemplates?.persistTemplates?.(templates),
+      normalizeTemplateRecord: (template) => CloudNote.adminTemplates?.normalizeTemplateRecord?.(template) || template,
+      renderTemplateList,
+      loadAssignments,
+      loadAssignmentOptions,
+      loadSubmissions,
+      loadStatistics,
+      renderStorageSummary,
+      getCategoryLabel: (category) => CloudNote.adminTemplates?.getCategoryLabel?.(category) || category,
+      getVisibilityLabel: (visibility) => CloudNote.adminTemplates?.getVisibilityLabel?.(visibility) || visibility,
     };
 
     CloudNote.adminSubmissionsHooks = {
-      loadAssignments: loadAssignments,
-      loadStatistics: loadStatistics,
-      loadRecycleBin: loadRecycleBin,
-      renderStorageSummary: renderStorageSummary,
+      loadAssignments,
+      loadStatistics,
+      loadRecycleBin,
+      renderStorageSummary,
     };
   }
 
   function bindEvents() {
-    const _a = getElements(), adminLoginForm = _a.adminLoginForm, loginMessage = _a.loginMessage, logoutButton = _a.logoutButton, adminNavItems = _a.adminNavItems;
+    const { adminLoginForm, loginMessage, logoutButton, adminNavItems } = getElements();
 
-    adminNavItems.forEach(function (button) {
-      button.addEventListener('click', function () { return switchAdminSection(button.dataset.adminSection); });
+    adminNavItems.forEach((button) => {
+      button.addEventListener('click', () => switchAdminSection(button.dataset.adminSection));
     });
-    document.querySelectorAll('[data-admin-section-shortcut]').forEach(function (button) {
-      button.addEventListener('click', function () { return switchAdminSection(button.dataset.adminSectionShortcut); });
+    document.querySelectorAll('[data-admin-section-shortcut]').forEach((button) => {
+      button.addEventListener('click', () => switchAdminSection(button.dataset.adminSectionShortcut));
     });
 
     if (adminLoginForm) {
@@ -296,68 +257,67 @@
       if (urlPassword && passwordInput) {
         passwordInput.value = urlPassword;
         cleanPasswordFromUrl();
-        loginAdminWithPassword(urlPassword).catch(function (error) { return setMessage(loginMessage, error.message, 'error'); });
+        loginAdminWithPassword(urlPassword).catch((error) => setMessage(loginMessage, error.message, 'error'));
       }
 
-      adminLoginForm.addEventListener('submit', function (event) {
+      adminLoginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        debugRecord('admin:loginAttempt', { event: event, target: adminLoginForm, message: '管理员登录尝试' });
-        const formData = new FormData(adminLoginForm);
-        loginAdminWithPassword(formData.get('password')).catch(function (error) {
+        debugRecord('admin:loginAttempt', { event, target: adminLoginForm, message: '管理员登录尝试' });
+        try {
+          const formData = new FormData(adminLoginForm);
+          await loginAdminWithPassword(formData.get('password'));
+        } catch (error) {
           setMessage(loginMessage, error.message, 'error');
           debugRecord('admin:loginFailed', { message: error.message });
-        });
+        }
       });
     }
 
-    if (logoutButton) {
-      logoutButton.addEventListener('click', function () {
-        let _a;
-        (_a = api.clearAdminToken) === null || _a === void 0 ? void 0 : _a.call(api);
-        showLoginPanel();
-      });
-    }
+    logoutButton?.addEventListener('click', () => {
+      api.clearAdminToken?.();
+      showLoginPanel();
+    });
   }
 
   function exposeCompatibilityProxies() {
     Object.assign(window, {
-      showAdminPanel: showAdminPanel,
-      showLoginPanel: showLoginPanel,
-      switchAdminSection: switchAdminSection,
-      loginAdminWithPassword: loginAdminWithPassword,
-      loadAssignments: loadAssignments,
-      refreshAssignments: refreshAssignments,
-      loadAssignmentOptions: loadAssignmentOptions,
-      renderAssignmentSelectors: renderAssignmentSelectors,
-      fetchAssignmentPages: fetchAssignmentPages,
-      renderAssignmentStats: renderAssignmentStats,
-      renderAssignmentCard: renderAssignmentCard,
-      editAssignment: editAssignment,
-      deleteAssignment: deleteAssignment,
-      copyTaskLink: copyTaskLink,
-      getAssignmentUrl: getAssignmentUrl,
-      loadTemplates: loadTemplates,
-      loadServerTemplates: loadServerTemplates,
-      renderTemplateList: renderTemplateList,
-      getStoredTemplates: getStoredTemplates,
-      persistTemplates: persistTemplates,
-      normalizeTemplateRecord: normalizeTemplateRecord,
-      saveTemplateFromSnapshot: saveTemplateFromSnapshot,
-      applyTemplate: applyTemplate,
-      deleteTemplate: deleteTemplate,
-      saveAssignmentTemplate: saveAssignmentTemplate,
-      applyLatestTemplate: applyLatestTemplate,
-      manageTemplates: manageTemplates,
-      resetForm: resetForm,
-      resetAssignmentForm: resetAssignmentForm,
-      fillAssignmentForm: fillAssignmentForm,
-      getFieldConfigFromForm: getFieldConfigFromForm,
-      renderFieldConfig: renderFieldConfig,
-      addCollectField: addCollectField,
-      loadSubmissions: loadSubmissions,
-      loadStatistics: loadStatistics,
-      loadRecycleBin: loadRecycleBin,
-      renderStorageSummary: renderStorageSummary,
+      showAdminPanel,
+      showLoginPanel,
+      switchAdminSection,
+      loginAdminWithPassword,
+      loadAssignments,
+      refreshAssignments,
+      loadAssignmentOptions,
+      renderAssignmentSelectors,
+      fetchAssignmentPages,
+      renderAssignmentStats,
+      renderAssignmentCard,
+      editAssignment,
+      deleteAssignment,
+      copyTaskLink,
+      getAssignmentUrl,
+      loadTemplates,
+      loadServerTemplates,
+      renderTemplateList,
+      getStoredTemplates,
+      persistTemplates,
+      normalizeTemplateRecord,
+      saveTemplateFromSnapshot,
+      applyTemplate,
+      deleteTemplate,
+      saveAssignmentTemplate,
+      applyLatestTemplate,
+      manageTemplates,
+      resetForm,
+      resetAssignmentForm,
+      fillAssignmentForm,
+      getFieldConfigFromForm,
+      renderFieldConfig,
+      addCollectField,
+      loadSubmissions,
+      loadStatistics,
+      loadRecycleBin,
+      renderStorageSummary,
     });
   }
 
@@ -367,19 +327,17 @@
     document.documentElement.dataset.cloudnoteAdminMainInitialized = 'true';
 
     configureHooks();
-    // Initialize sub-modules
-    let _a, _b, _c, _d, _e, _f, _g;
-    (_a = CloudNote.adminStorage) === null || _a === void 0 ? void 0 : _a.init();
-    (_b = CloudNote.adminRecycle) === null || _b === void 0 ? void 0 : _b.init();
-    (_c = CloudNote.adminStatistics) === null || _c === void 0 ? void 0 : _c.init();
-    (_d = CloudNote.adminSubmissions) === null || _d === void 0 ? void 0 : _d.init();
-    (_e = CloudNote.adminAssignmentForm) === null || _e === void 0 ? void 0 : _e.init();
-    (_f = CloudNote.adminTemplates) === null || _f === void 0 ? void 0 : _f.init();
-    (_g = CloudNote.adminAssignments) === null || _g === void 0 ? void 0 : _g.init();
+    CloudNote.adminStorage?.init?.();
+    CloudNote.adminRecycle?.init?.();
+    CloudNote.adminStatistics?.init?.();
+    CloudNote.adminSubmissions?.init?.();
+    CloudNote.adminAssignmentForm?.init?.();
+    CloudNote.adminTemplates?.init?.();
+    CloudNote.adminAssignments?.init?.();
     exposeCompatibilityProxies();
     bindEvents();
 
-    if ((api.getAdminToken && api.getAdminToken())) {
+    if (api.getAdminToken?.()) {
       showAdminPanel();
       refreshAdminData();
     } else {
@@ -390,14 +348,14 @@
   window.addEventListener('cloudnote:admin-unauthorized', showLoginPanel);
 
   CloudNote.adminMain = Object.assign(CloudNote.adminMain || {}, {
-    init: init,
-    isAdminPage: isAdminPage,
-    showAdminPanel: showAdminPanel,
-    showLoginPanel: showLoginPanel,
+    init,
+    isAdminPage,
+    showAdminPanel,
+    showLoginPanel,
     switchSection: switchAdminSection,
-    refreshAdminData: refreshAdminData,
+    refreshAdminData,
     refreshStorage: renderStorageSummary,
   });
 
-  (common.ready || (function (cb) { cb(); }))(init);
+  (common.ready || ((cb) => { cb(); }))(init);
 })(window, document);
