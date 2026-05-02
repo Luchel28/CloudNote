@@ -511,25 +511,6 @@
 }
 
 
-/* ---- 八补、统计卡片弱化 & 说明左对齐 ---- */
-
-/* 统计卡片 hover 不强加绿色背景 */
-.task-list-page .assignment-stat-card:hover {
-  transform: translateY(-1px);
-  border-color: rgba(10, 166, 106, 0.18);
-  box-shadow: 0 8px 20px rgba(23, 35, 58, 0.08);
-  background: #fff !important;
-}
-
-/* 统计卡片选中态仅轻微绿底 */
-.task-list-page .assignment-stat-card.is-active {
-  border-color: rgba(10, 166, 106, 0.32);
-  background: rgba(10, 166, 106, 0.06) !important;
-  box-shadow:
-    0 0 0 2px rgba(10, 166, 106, 0.08),
-    0 8px 20px rgba(23, 35, 58, 0.06);
-}
-
 /* 任务说明左对齐 */
 .task-list-page .assignment-card {
   text-align: left;
@@ -537,11 +518,6 @@
 
 .task-list-page .assignment-card-main {
   text-align: left;
-}
-
-.task-list-page .assignment-description {
-  text-align: left;
-  align-self: stretch;
 }
 
 
@@ -626,4 +602,21 @@
 
 .task-list-page .assignment-list {
   margin-top: 18px;
+}
+
+
+/* ---- 十一、自适应宽度 ---- */
+
+.admin-content > .admin-section {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+}
+
+.admin-content > .admin-section[data-section-panel='tasks'],
+.admin-content > .admin-section[data-section-panel='submissions'],
+.admin-content > .admin-section[data-section-panel='recycle'] {
+  max-width: none;
 }
