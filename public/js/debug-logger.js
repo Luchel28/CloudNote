@@ -266,23 +266,79 @@
     } catch {}
   }
 
+  let debugPanel = null;
+  let debugPanelVisible = false;
+
+  function toggleDebugPanel() {
+    debugPanelVisible = !debugPanelVisible;
+    if (!debugPanel) createDebugPanel();
+    debugPanel.classList.toggle('is-hidden', !debugPanelVisible);
+    if (debugPanelVisible) refreshDebugPanel();
+  }
+
+  function createDebugPanel() {
+    if (debugPanel) return;
+    debugPanel = document.createElement('div');
+    debugPanel.className = 'cloudnote-debug-panel is-hidden';
+    debugPanel.dataset.cloudnoteDebugToolbar = 'true';
+    debugPanel.innerHTML = `
+      <div class="debug-panel-head">
+        <strong>Debug Log</strong>
+        <div class="debug-panel-actions">
+          <button type="button" data-debug-export>导出</button>
+          <button type="button" data-debug-clear>清空</button>
+          <button type="button" data-debug-close>×</button>
+        </div>
+      </div>
+      <div class="debug-panel-body"></div>
+    `;
+    debugPanel.addEventListener('click', (event) => {
+      if (event.target.closest('[data-debug-export]')) exportLogs();
+      if (event.target.closest('[data-debug-clear]')) { clearLogs(); refreshDebugPanel(); }
+      if (event.target.closest('[data-debug-close]')) toggleDebugPanel();
+    });
+    document.body.appendChild(debugPanel);
+    // Add toggle button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'debug-toggle-btn';
+    toggleBtn.textContent = '🐞';
+    toggleBtn.title = 'Toggle debug panel';
+    toggleBtn.addEventListener('click', toggleDebugPanel);
+    document.body.appendChild(toggleBtn);
+  }
+
+  function refreshDebugPanel() {
+    if (!debugPanel) return;
+    const body = debugPanel.querySelector('.debug-panel-body');
+    if (!body) return;
+    const logs = getLogs().slice(-100).reverse();
+    body.innerHTML = logs.length
+      ? logs
+          .map(
+            (entry) =>
+              `<div class="debug-log-entry ${entry.action?.startsWith('error') || entry.details?.message?.includes('fail') ? 'is-error' : ''}">
+                <small>${(entry.timestamp || '').slice(11, 19)}</small>
+                <code>${entry.action || ''}</code>
+                <span>${entry.message || entry.targetText || ''}</span>
+              </div>`
+          )
+          .join('')
+      : '<div class="debug-empty">暂无日志</div>';
+    body.scrollTop = 0;
+  }
+
   function initToolbar() {
     try {
-      if (new URLSearchParams(window.location.search).get('debug') !== '1') return;
       if (document.querySelector('[data-cloudnote-debug-toolbar]')) return;
-      const toolbar = document.createElement('div');
-      toolbar.className = 'cloudnote-debug-toolbar';
-      toolbar.dataset.cloudnoteDebugToolbar = 'true';
-      toolbar.innerHTML = `
-        <button type="button" data-cloudnote-debug-export>导出日志</button>
-        <button type="button" data-cloudnote-debug-clear>清空日志</button>
-      `;
-      toolbar.addEventListener('click', (event) => {
-        event.stopPropagation();
-        if (event.target.closest('[data-cloudnote-debug-export]')) exportLogs();
-        if (event.target.closest('[data-cloudnote-debug-clear]')) clearLogs();
-      });
-      document.body.appendChild(toolbar);
+      const isAdmin = !!document.getElementById('adminPanel');
+      if (!isAdmin) return;
+      createDebugPanel();
+      // Auto-show on admin page
+      if (new URLSearchParams(window.location.search).get('debug') === '1') {
+        toggleDebugPanel();
+      }
+      // Refresh panel every 3 seconds
+      setInterval(() => { if (debugPanelVisible) refreshDebugPanel(); }, 3000);
     } catch {}
   }
 

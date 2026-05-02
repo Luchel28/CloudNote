@@ -43,22 +43,28 @@
   }
 
   async function apiFetch(url, options = {}) {
-    const { admin = false, fallbackMessage = '操作失败', headers, ...fetchOptions } = options;
+    const { admin = false, fallbackMessage = '操作失败', method = 'GET', headers, ...fetchOptions } = options;
+    CloudNote.debug?.record?.('api:request', { message: `${method} ${url}`, url });
     let response;
+    const startTime = Date.now();
     try {
       response = await fetch(url, {
+        method,
         ...fetchOptions,
         headers: makeHeaders(headers, admin),
       });
-    } catch {
-      throw new Error('网络请求失败，请稍后重试');
+    } catch (err) {
+      CloudNote.debug?.record?.('api:error', { message: `请求失败: ${url}`, url, error: err.message });
+      throw new Error('网络请求失败，请稍后重试', { cause: err });
     }
-
+    const elapsed = Date.now() - startTime;
     if (!response.ok) {
       const body = await parseResponseBody(response).catch(() => null);
+      CloudNote.debug?.record?.('api:error', { message: `${response.status} ${url}`, url, status: response.status, elapsed });
       if (response.status === 401) handleUnauthorized(admin);
       throw new Error((body && typeof body === 'object' && body.message) || response.statusText || fallbackMessage);
     }
+    CloudNote.debug?.record?.('api:success', { message: `${method} ${url} ${response.status}`, url, elapsed });
     return response;
   }
 
@@ -109,20 +115,18 @@
     return del(url, { ...options, admin: true });
   }
 
-  async function downloadBlob(url, filename, options = {}) {
-    const response = await apiFetch(url, options);
-    const disposition = response.headers.get('Content-Disposition') || '';
-    const match = disposition.match(/filename\*?=(?:UTF-8'')?([^;\s]+)/i);
-    const serverFilename = match ? decodeURIComponent(match[1]) : filename;
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
+  function downloadBlob(url, filename, options = {}) {
+    const token = getAdminToken();
+    const sep = url.includes('?') ? '&' : '?';
+    const fullUrl = token ? `${url}${sep}_token=${encodeURIComponent(token)}` : url;
     const link = document.createElement('a');
-    link.href = objectUrl;
-    link.download = serverFilename || filename || 'download';
+    link.href = fullUrl;
+    link.download = filename || 'download';
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(objectUrl);
+    CloudNote.debug?.record?.('api:downloadBlob', { message: `Download: ${filename}`, url: fullUrl });
   }
 
   function adminDownloadBlob(url, filename, options = {}) {

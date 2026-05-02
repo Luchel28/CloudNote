@@ -27,7 +27,7 @@ function createAdminToken() {
 }
 
 function requireAdmin(req, res, next) {
-  const token = String(req.headers['x-admin-token'] || '');
+  const token = String(req.headers['x-admin-token'] || req.query._token || '');
   if (!token) {
     return res.status(401).json({ message: msg('\u8bf7\u5148\u767b\u5f55\u540e\u53f0') });
   }

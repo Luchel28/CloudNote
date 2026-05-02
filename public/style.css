@@ -5628,6 +5628,85 @@ body.upload-page.upload-invalid-state .upload-status-hint {
   font-size: 12px;
 }
 
+/* Debug floating panel */
+.debug-toggle-btn {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1999;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(23, 35, 58, 0.8);
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.debug-toggle-btn:hover { background: rgba(23, 35, 58, 0.95); }
+
+.cloudnote-debug-panel {
+  position: fixed;
+  right: 14px;
+  bottom: 66px;
+  z-index: 2000;
+  width: min(480px, calc(100vw - 28px));
+  max-height: 60vh;
+  border-radius: 12px;
+  background: rgba(23, 35, 58, 0.95);
+  color: #e8edf5;
+  font-size: 12px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.cloudnote-debug-panel.is-hidden { display: none; }
+
+.debug-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.debug-panel-head strong { font-size: 13px; }
+.debug-panel-actions { display: flex; gap: 6px; }
+.debug-panel-actions button {
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 5px;
+  color: #c8d0dc;
+  background: transparent;
+  font-size: 11px;
+  cursor: pointer;
+}
+.debug-panel-actions button:hover { background: rgba(255,255,255,0.1); }
+
+.debug-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.debug-log-entry {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  gap: 6px;
+  padding: 4px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  word-break: break-all;
+}
+.debug-log-entry.is-error { background: rgba(255,48,40,0.15); }
+.debug-log-entry small { color: #6c7a90; }
+.debug-log-entry code { color: #4fc3f7; }
+.debug-log-entry span { color: #b8c5d6; }
+
+.debug-empty { padding: 20px; text-align: center; color: #6c7a90; }
+
 @media (max-width: 900px) {
   .field-table-head,
   .collect-field-row {
