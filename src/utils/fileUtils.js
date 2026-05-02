@@ -30,9 +30,10 @@ function makeStoredFilename(originalName) {
 function sendStoredFile(res, filePath, filename) {
   const downloadName = String(filename || 'cloudnote-file');
   const fallbackName = safeName(downloadName) || 'cloudnote-file';
+  const asciiName = fallbackName.replace(/[^\x20-\x7E]/g, '_');
   const encodedName = encodeURIComponent(downloadName).replace(/'/g, '%27');
   res.setHeader('Content-Type', 'application/octet-stream');
-  res.setHeader('Content-Disposition', `attachment; filename="${fallbackName}"; filename*=UTF-8''${encodedName}`);
+  res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`);
   const stream = fs.createReadStream(filePath);
   stream.on('error', (error) => {
     console.error(error);

@@ -241,13 +241,36 @@
         <span class="stat-icon"><i class="iconfont ${card.icon}"></i></span>
         <span class="stat-copy">
           <span>${card.title}</span>
-          <strong>${card.value}</strong>
+          <strong data-count="${card.value}">0</strong>
           <small>${card.desc}</small>
         </span>
       </button>
     `
       )
       .join('');
+    // Animate numbers after render
+    requestAnimationFrame(() => {
+      assignmentStats.querySelectorAll('[data-count]').forEach((el) => {
+        const target = Number(el.dataset.count);
+        animateNumber(el, target);
+      });
+    });
+  }
+
+  function animateNumber(el, target) {
+    if (!target) { el.textContent = target; return; }
+    const start = 0;
+    const duration = 600;
+    const startTime = Date.now();
+    function tick() {
+      const now = Date.now();
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(start + (target - start) * eased);
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   }
 
   async function load() {

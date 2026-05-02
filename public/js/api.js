@@ -115,18 +115,40 @@
     return del(url, { ...options, admin: true });
   }
 
-  function downloadBlob(url, filename, options = {}) {
-    const token = getAdminToken();
-    const sep = url.includes('?') ? '&' : '?';
-    const fullUrl = token ? `${url}${sep}_token=${encodeURIComponent(token)}` : url;
+  async function downloadBlob(url, filename, options = {}) {
+    const { admin = false, method = 'GET', headers, body, ...fetchOptions } = options;
+    CloudNote.debug?.record?.('api:downloadBlob', { message: `Download: ${filename}`, url });
+    let response;
+    const startTime = Date.now();
+    try {
+      response = await fetch(url, {
+        method,
+        ...(method !== 'GET' && method !== 'HEAD' ? { body } : {}),
+        ...fetchOptions,
+        headers: makeHeaders(headers, admin),
+      });
+    } catch (err) {
+      CloudNote.debug?.record?.('api:error', { message: `下载请求失败: ${url}`, url, error: err.message });
+      throw new Error('网络请求失败，请稍后重试', { cause: err });
+    }
+    const elapsed = Date.now() - startTime;
+    if (!response.ok) {
+      const body = await parseResponseBody(response).catch(() => null);
+      CloudNote.debug?.record?.('api:error', { message: `${response.status} ${url}`, url, status: response.status, elapsed });
+      if (response.status === 401) handleUnauthorized(admin);
+      throw new Error((body && typeof body === 'object' && body.message) || response.statusText || '下载文件失败');
+    }
+    CloudNote.debug?.record?.('api:success', { message: `Download: ${filename} ${response.status}`, url, elapsed });
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = fullUrl;
+    link.href = blobUrl;
     link.download = filename || 'download';
     link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     link.remove();
-    CloudNote.debug?.record?.('api:downloadBlob', { message: `Download: ${filename}`, url: fullUrl });
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
   }
 
   function adminDownloadBlob(url, filename, options = {}) {
