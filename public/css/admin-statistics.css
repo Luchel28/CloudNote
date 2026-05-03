@@ -246,3 +246,12 @@
     overflow-x: auto;
   }
 }
+
+
+/* ---- Trend Tooltip Fix ---- */
+[data-section-panel='stats'] .trend-bar-item .trend-tooltip {
+  background: rgba(255, 255, 255, 0.96);
+  color: #17233a;
+  border: 1px solid rgba(23, 35, 58, 0.12);
+  box-shadow: 0 8px 18px rgba(23, 35, 58, 0.12);
+}

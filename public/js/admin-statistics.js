@@ -53,24 +53,30 @@
     };
   }
 
+  function normalizeStatisticsStatus(status) {
+    if (status === 'deleted') return '\u5df2\u5220\u9664';
+    if (status === 'ongoing') return '\u8fdb\u884c\u4e2d';
+    return '\u5df2\u5b8c\u6210';
+  }
+
   function renderSummary(summary = {}) {
     const { statisticsSummary } = getElements();
     if (!statisticsSummary) return;
+    const completedAssignments = Number(summary.endedAssignments || 0) + Number(summary.expiredAssignments || 0) + Number(summary.archivedAssignments || 0);
     statisticsSummary.innerHTML = `
-      <div class="stat-card stat-card-icon"><span>任务总数</span><strong>${summary.totalAssignments || 0}</strong><small>所有任务</small></div>
-      <div class="stat-card stat-card-icon"><span>进行中</span><strong>${summary.ongoingAssignments || 0}</strong><small>正在收集</small></div>
-      <div class="stat-card stat-card-icon"><span>已结束</span><strong>${summary.endedAssignments || 0}</strong><small>已停止</small></div>
-      <div class="stat-card stat-card-icon"><span>已过期</span><strong>${summary.expiredAssignments || 0}</strong><small>需关注</small></div>
-      <div class="stat-card stat-card-icon"><span>提交份数</span><strong>${summary.totalSubmittedCount || 0}</strong><small>累计提交</small></div>
-      <div class="stat-card stat-card-icon"><span>提交人数</span><strong>${summary.totalSubmitterCount || 0}</strong><small>参与人数</small></div>
-      <div class="stat-card stat-card-icon"><span>逾期提交</span><strong>${summary.lateCount || 0}</strong><small>需关注</small></div>`;
+      <div class="stat-card stat-card-icon"><span>\u4efb\u52a1\u603b\u6570</span><strong>${summary.totalAssignments || 0}</strong><small>\u6240\u6709\u4efb\u52a1</small></div>
+      <div class="stat-card stat-card-icon"><span>\u8fdb\u884c\u4e2d</span><strong>${summary.ongoingAssignments || 0}</strong><small>\u6b63\u5728\u6536\u96c6</small></div>
+      <div class="stat-card stat-card-icon"><span>\u5df2\u5b8c\u6210</span><strong>${completedAssignments}</strong><small>\u5df2\u622a\u6b62\u4efb\u52a1</small></div>
+      <div class="stat-card stat-card-icon"><span>\u63d0\u4ea4\u4efd\u6570</span><strong>${summary.totalSubmittedCount || 0}</strong><small>\u7d2f\u8ba1\u63d0\u4ea4</small></div>
+      <div class="stat-card stat-card-icon"><span>\u63d0\u4ea4\u4eba\u6570</span><strong>${summary.totalSubmitterCount || 0}</strong><small>\u53c2\u4e0e\u4eba\u6570</small></div>
+      <div class="stat-card stat-card-icon"><span>\u903e\u671f\u63d0\u4ea4</span><strong>${summary.lateCount || 0}</strong><small>\u9700\u5173\u6ce8</small></div>`;
   }
 
   function renderTrendChart(trend) {
     const { submissionTrendChart } = getElements();
     if (!submissionTrendChart) return;
     if (!trend.length) {
-      submissionTrendChart.innerHTML = '<div class="chart-empty-state">暂无提交数据</div>';
+      submissionTrendChart.innerHTML = '<div class="chart-empty-state">\u6682\u65e0\u63d0\u4ea4\u6570\u636e</div>';
       return;
     }
     const max = Math.max(...trend.map((item) => Number(item.count || 0)), 1);
@@ -81,7 +87,7 @@
         const label = String(item.day || '').slice(5);
         return `
         <div class="trend-bar-item">
-          <span class="trend-tooltip">${escapeHtml(item.day)}：${count}份</span>
+          <span class="trend-tooltip">${escapeHtml(item.day)}\uff1a${count}\u4efd</span>
           <strong class="trend-bar-value">${count}</strong>
           <div class="trend-bar-track"><span style="height:${height}%"></span></div>
           <small>${escapeHtml(label)}</small>
@@ -94,27 +100,21 @@
   function renderStatusDistribution(summary = {}) {
     const { statusDistributionChart } = getElements();
     if (!statusDistributionChart) return;
-    const total = Number(summary.totalAssignments || 0);
+    const ongoing = Number(summary.ongoingAssignments || 0);
+    const completed = Number(summary.endedAssignments || 0) + Number(summary.expiredAssignments || 0) + Number(summary.archivedAssignments || 0);
+    const total = ongoing + completed;
     if (!total) {
-      statusDistributionChart.innerHTML = '<div class="chart-empty-state">暂无任务数据</div>';
+      statusDistributionChart.innerHTML = '<div class="chart-empty-state">\u6682\u65e0\u4efb\u52a1\u6570\u636e</div>';
       return;
     }
-    const ongoing = Number(summary.ongoingAssignments || 0);
-    const ended = Number(summary.endedAssignments || 0);
-    const expired = Number(summary.expiredAssignments || 0);
-    const archived = Number(summary.archivedAssignments || 0);
     const ongoingDeg = total ? (ongoing / total) * 360 : 0;
-    const endedDeg = total ? ((ongoing + ended) / total) * 360 : 0;
-    const expiredDeg = total ? ((ongoing + ended + expired) / total) * 360 : 0;
     statusDistributionChart.innerHTML = `
-      <div class="donut" style="background: conic-gradient(#08a05f 0deg ${ongoingDeg}deg, #2d7ff9 ${ongoingDeg}deg ${endedDeg}deg, #ffae22 ${endedDeg}deg ${expiredDeg}deg, #8c5cf6 ${expiredDeg}deg 360deg);">
-        <strong>${total}</strong><span>总任务</span>
+      <div class="donut" style="background: conic-gradient(#08a05f 0deg ${ongoingDeg}deg, #2d7ff9 ${ongoingDeg}deg 360deg);">
+        <strong>${total}</strong><span>\u603b\u4efb\u52a1</span>
       </div>
       <div class="donut-legend">
-        <span><i style="background:#08a05f"></i>进行中 ${ongoing}</span>
-        <span><i style="background:#2d7ff9"></i>已截止/已结束 ${ended}</span>
-        <span><i style="background:#ffae22"></i>已过期 ${expired}</span>
-        <span><i style="background:#8c5cf6"></i>已归档 ${archived}</span>
+        <span><i style="background:#08a05f"></i>\u8fdb\u884c\u4e2d ${ongoing}</span>
+        <span><i style="background:#2d7ff9"></i>\u5df2\u5b8c\u6210 ${completed}</span>
       </div>
     `;
   }
@@ -126,10 +126,10 @@
       items
         .map(
           (item) => `
-      <tr><td>${escapeHtml(item.assignmentTitle)}</td><td>${getStatusLabel(item.effectiveStatus)}</td><td>${item.submittedCount}</td><td>${item.submitterCount}</td><td>${escapeHtml(item.submissionStatus || (item.submittedCount > 0 ? '已有提交' : '暂无提交'))}</td><td>${item.lateCount}</td><td>${item.deadline ? formatTime(item.deadline) : '-'}</td></tr>
+      <tr><td>${escapeHtml(item.assignmentTitle)}</td><td>${normalizeStatisticsStatus(item.effectiveStatus)}</td><td>${item.submittedCount}</td><td>${item.submitterCount}</td><td>${item.lateCount}</td><td>${item.deadline ? formatTime(item.deadline) : '-'}</td></tr>
     `
         )
-        .join('') || '<tr><td colspan="7" class="empty-cell">暂无统计</td></tr>';
+        .join('') || '<tr><td colspan="6" class="empty-cell">\u6682\u65e0\u7edf\u8ba1</td></tr>';
   }
 
   async function load() {
