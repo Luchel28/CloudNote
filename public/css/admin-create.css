@@ -1,0 +1,545 @@
+/*
+ * CloudNote Admin Create
+ * Create assignment page specific styles.
+ * Loaded after admin-recycle.css.
+ */
+
+/* ---- Page Head ---- */
+[data-section-panel='create'] .create-page-head {
+  margin-bottom: 16px;
+}
+
+[data-section-panel='create'] .create-page-head h1 {
+  font-size: clamp(24px, 2.4vw, 34px);
+}
+
+[data-section-panel='create'] .create-page-head .intro {
+  max-width: 580px;
+}
+
+[data-section-panel='create'] .create-head-actions {
+  flex-shrink: 0;
+}
+
+[data-section-panel='create'] .create-head-actions button {
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+
+/* ---- Step Tabs ---- */
+[data-section-panel='create'] .task-tabs {
+  gap: 24px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(23, 35, 58, 0.1);
+}
+
+[data-section-panel='create'] .task-tab {
+  min-height: 48px;
+  padding: 0 10px;
+  font-size: 16px;
+  font-weight: 650;
+  color: #637187;
+  background: transparent;
+  border-radius: 0;
+  position: relative;
+}
+
+[data-section-panel='create'] .task-tab:hover {
+  color: #0aa66a;
+  background: transparent;
+}
+
+[data-section-panel='create'] .task-tab.is-active {
+  color: #0aa66a;
+  background: transparent;
+}
+
+[data-section-panel='create'] .task-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 999px;
+  background: #0aa66a;
+}
+
+[data-section-panel='create'] .task-tab-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(10, 166, 106, 0.12);
+  color: #0aa66a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+[data-section-panel='create'] .task-tab.is-active .task-tab-index {
+  background: #0aa66a;
+  color: #fff;
+}
+
+
+/* ---- Step Cards ---- */
+[data-section-panel='create'] .create-step-card {
+  border-radius: 16px;
+  border: 1px solid rgba(23, 35, 58, 0.08);
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(23, 35, 58, 0.04);
+  padding: 24px;
+}
+
+[data-section-panel='create'] .step-title-row {
+  margin-bottom: 20px;
+}
+
+[data-section-panel='create'] .step-title-row h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #101b33;
+}
+
+[data-section-panel='create'] .step-title-row p {
+  color: #718198;
+  font-size: 13px;
+}
+
+[data-section-panel='create'] .step-number {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+}
+
+
+/* ---- Basic Form Grid ---- */
+[data-section-panel='create'] .basic-form-grid {
+  gap: 18px 22px;
+}
+
+[data-section-panel='create'] .basic-form-grid label > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a4d6b;
+}
+
+[data-section-panel='create'] .basic-form-grid input,
+[data-section-panel='create'] .basic-form-grid select,
+[data-section-panel='create'] .basic-form-grid textarea {
+  border-radius: 10px;
+  border: 1px solid rgba(23, 35, 58, 0.14);
+  background: #f9fbfb;
+  font-size: 13px;
+}
+
+[data-section-panel='create'] .basic-form-grid input:focus,
+[data-section-panel='create'] .basic-form-grid select:focus,
+[data-section-panel='create'] .basic-form-grid textarea:focus {
+  border-color: #0aa66a;
+  box-shadow: 0 0 0 3px rgba(10, 166, 106, 0.08);
+}
+
+[data-section-panel='create'] .basic-form-grid input,
+[data-section-panel='create'] .basic-form-grid select {
+  height: 42px;
+  padding: 0 12px;
+}
+
+[data-section-panel='create'] .basic-form-grid textarea {
+  min-height: 100px;
+  padding: 12px;
+}
+
+[data-section-panel='create'] .basic-form-grid .input-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: right;
+}
+
+[data-section-panel='create'] .switch-field.inline-switch {
+  min-height: 42px;
+  gap: 12px;
+}
+
+[data-section-panel='create'] .switch-field.inline-switch span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a4d6b;
+}
+
+
+/* ---- Collect Fields ---- */
+[data-section-panel='create'] .collect-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+[data-section-panel='create'] .field-table-head {
+  border-radius: 12px 12px 0 0;
+}
+
+[data-section-panel='create'] .collect-field-list {
+  gap: 0;
+}
+
+[data-section-panel='create'] .collect-field-row {
+  min-height: 56px;
+  padding: 12px 16px;
+  border-radius: 0;
+  border-color: rgba(23, 35, 58, 0.08);
+}
+
+[data-section-panel='create'] .collect-type-note {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(10, 166, 106, 0.15);
+  background: rgba(10, 166, 106, 0.04);
+  font-size: 13px;
+}
+
+[data-section-panel='create'] .collect-type-note strong {
+  color: #0d7c4b;
+}
+
+[data-section-panel='create'] .collect-type-note span {
+  color: #637187;
+}
+
+[data-section-panel='create'] .type-popover-panel {
+  border-radius: 16px;
+}
+
+[data-section-panel='create'] .type-popover-head {
+  padding: 20px 20px 0;
+}
+
+[data-section-panel='create'] .type-group-title {
+  padding: 0 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3a4d6b;
+  margin: 14px 0 8px;
+}
+
+[data-section-panel='create'] .type-grid {
+  padding: 0 20px;
+  gap: 10px;
+}
+
+[data-section-panel='create'] .type-grid button {
+  border-radius: 10px;
+  border: 1px solid rgba(23, 35, 58, 0.14);
+  background: #fff;
+  color: #3a4d6b;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 40px;
+}
+
+[data-section-panel='create'] .type-grid button:hover {
+  border-color: #0aa66a;
+  background: rgba(10, 166, 106, 0.06);
+  color: #0aa66a;
+}
+
+
+/* ---- File Settings ---- */
+[data-section-panel='create'] .file-settings-grid {
+  gap: 18px 22px;
+}
+
+[data-section-panel='create'] .file-settings-group h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #101b33;
+  margin: 0 0 14px;
+}
+
+[data-section-panel='create'] .file-type-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+[data-section-panel='create'] .file-type-checks > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a4d6b;
+  margin-right: 4px;
+}
+
+[data-section-panel='create'] .file-type-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3a4d6b;
+}
+
+[data-section-panel='create'] .file-type-checks label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #0aa66a;
+  margin: 0;
+}
+
+[data-section-panel='create'] .file-type-checks label small {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+[data-section-panel='create'] .limit-row {
+  gap: 14px;
+}
+
+[data-section-panel='create'] .limit-row input {
+  border-radius: 10px;
+  border: 1px solid rgba(23, 35, 58, 0.14);
+  background: #f9fbfb;
+  font-size: 13px;
+}
+
+[data-section-panel='create'] .rename-rule-box {
+  border-radius: 12px;
+  border: 1px dashed rgba(10, 166, 106, 0.3);
+  background: rgba(10, 166, 106, 0.04);
+  padding: 14px 16px;
+  gap: 10px;
+}
+
+[data-section-panel='create'] .rename-rule-box strong {
+  color: #0d7c4b;
+}
+
+
+/* ---- Action Bar ---- */
+[data-section-panel='create'] .create-action-bar {
+  margin-top: 24px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(23, 35, 58, 0.08);
+  background: #fafcfb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+[data-section-panel='create'] .autosave-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+[data-section-panel='create'] .autosave-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(10, 166, 106, 0.12);
+  color: #0aa66a;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+[data-section-panel='create'] .autosave-status strong {
+  font-size: 13px;
+  color: #101b33;
+}
+
+[data-section-panel='create'] .autosave-status small {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+[data-section-panel='create'] .create-action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+[data-section-panel='create'] .create-action-buttons button {
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  min-height: 40px;
+  padding: 0 18px;
+}
+
+[data-section-panel='create'] #assignmentSubmitButton {
+  background: linear-gradient(135deg, #088d56, #1ab870);
+  box-shadow: 0 8px 18px rgba(10, 166, 106, 0.18);
+  color: #fff;
+  border: none;
+}
+
+[data-section-panel='create'] #assignmentSubmitButton:hover {
+  background: linear-gradient(135deg, #067546, #13a763);
+  box-shadow: 0 10px 22px rgba(10, 166, 106, 0.24);
+}
+
+
+/* ---- Message ---- */
+[data-section-panel='create'] .message {
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+
+/* ---- Template Modals ---- */
+[data-section-panel='create'] .template-modal-panel {
+  border-radius: 16px;
+  padding: 20px 24px;
+  max-width: 520px;
+}
+
+[data-section-panel='create'] .template-modal-head h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+[data-section-panel='create'] .template-edit-form label {
+  gap: 6px;
+}
+
+[data-section-panel='create'] .template-edit-form label > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #637187;
+}
+
+[data-section-panel='create'] .template-edit-form input,
+[data-section-panel='create'] .template-edit-form select {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(23, 35, 58, 0.14);
+  background: #f9fbfb;
+  font-size: 13px;
+  color: #17233a;
+}
+
+[data-section-panel='create'] .template-edit-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+[data-section-panel='create'] .template-edit-actions button {
+  border-radius: 10px;
+  font-weight: 600;
+  min-height: 38px;
+  padding: 0 18px;
+  font-size: 13px;
+}
+
+[data-section-panel='create'] .template-modal-tools {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+[data-section-panel='create'] .template-modal-tools input {
+  flex: 1;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(23, 35, 58, 0.14);
+  background: #f9fbfb;
+  font-size: 13px;
+}
+
+[data-section-panel='create'] .template-modal-tools select {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(23, 35, 58, 0.14);
+  background: #f9fbfb;
+  font-size: 13px;
+}
+
+[data-section-panel='create'] .template-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #637187;
+}
+
+[data-section-panel='create'] .template-bulk-bar button {
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  min-height: 34px;
+  padding: 0 14px;
+}
+
+[data-section-panel='create'] .radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+
+/* ---- Responsive ---- */
+@media (max-width: 1180px) {
+  [data-section-panel='create'] .file-settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  [data-section-panel='create'] .create-page-head {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  [data-section-panel='create'] .task-tabs {
+    gap: 12px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  [data-section-panel='create'] .create-step-card {
+    padding: 18px;
+  }
+
+  [data-section-panel='create'] .basic-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  [data-section-panel='create'] .create-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  [data-section-panel='create'] .create-action-buttons {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  [data-section-panel='create'] .create-action-buttons button {
+    flex: 1 1 160px;
+  }
+
+  [data-section-panel='create'] .template-modal-panel {
+    width: min(94vw, 720px);
+    max-width: 100%;
+    padding: 16px 18px;
+  }
+}
