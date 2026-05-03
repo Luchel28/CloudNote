@@ -119,6 +119,13 @@ http://localhost:3000/admin.html
 - `public/`
 - `src/`
 
+## 部署与备份文档
+
+- 阿里云部署文档：[`docs/deploy-aliyun.md`](docs/deploy-aliyun.md)
+- 备份与恢复说明：[`docs/backup-restore.md`](docs/backup-restore.md)
+- 当前生产环境建议优先使用本地磁盘版部署，后续如有更高容量或对象存储需求，再评估接入 OSS
+- 生产环境必须单独配置 `.env`，且不能使用默认管理员密码 `admin123456`
+
 ## Release
 
 当前已发布版本：`v1.0.0`
