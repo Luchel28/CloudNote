@@ -45,7 +45,7 @@
 /* ---- Filter Card ---- */
 [data-section-panel='submissions'] .submission-filter {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
   align-items: end;
   margin: 0 0 16px;
@@ -176,13 +176,13 @@
 }
 
 /* Table action buttons */
-[data-section-panel='submissions'] .submission-file-actions {
+[data-section-panel='submissions'] .submission-actions-cell .submission-file-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-[data-section-panel='submissions'] .submission-file-actions .icon-mini-button {
+[data-section-panel='submissions'] .submission-actions-cell .icon-mini-button {
   min-height: 30px;
   padding: 0 12px;
   border-radius: 8px;
@@ -190,19 +190,36 @@
   font-weight: 600;
 }
 
-[data-section-panel='submissions'] .submission-file-actions .icon-mini-button:hover {
+[data-section-panel='submissions'] .submission-actions-cell .icon-mini-button:hover {
   opacity: 0.85;
 }
 
-[data-section-panel='submissions'] .submission-file-actions .danger-mini {
+[data-section-panel='submissions'] .submission-actions-cell .danger-mini {
   background: rgba(217, 45, 32, 0.08);
   color: #cf2f24;
   border: 1px solid rgba(217, 45, 32, 0.2);
 }
 
-[data-section-panel='submissions'] .submission-file-actions .danger-mini:hover {
+[data-section-panel='submissions'] .submission-actions-cell .danger-mini:hover {
   background: #d92d20;
   color: #fff;
+}
+
+[data-section-panel='submissions'] .submission-delete-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+[data-section-panel='submissions'] .submission-delete-cell button {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+[data-section-panel='submissions'] .submission-select-cell {
+  text-align: center;
+  vertical-align: middle;
 }
 
 
@@ -232,7 +249,24 @@
   font-size: 13px;
 }
 
+/* ---- Date Placeholder ---- */
+[data-section-panel='submissions'] input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field { color: #999; }
+[data-section-panel='submissions'] input[type="date"]:not(:focus)::-webkit-datetime-edit-month-field { color: #999; }
+[data-section-panel='submissions'] input[type="date"]:not(:focus)::-webkit-datetime-edit-day-field { color: #999; }
+[data-section-panel='submissions'] input[type="date"]::-webkit-datetime-edit-text { color: #999; }
+[data-section-panel='submissions'] input[type="date"]:not(:focus)::-webkit-datetime-edit-year-field:empty::before { content: "年"; color: #999; }
+[data-section-panel='submissions'] input[type="date"]:not(:focus)::-webkit-datetime-edit-month-field:empty::before { content: "月"; color: #999; }
+[data-section-panel='submissions'] input[type="date"]:not(:focus)::-webkit-datetime-edit-day-field:empty::before { content: "日"; color: #999; }
+[data-section-panel='submissions'] input[type="date"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+
+
 /* ---- Responsive ---- */
+@media (max-width: 1280px) {
+  [data-section-panel='submissions'] .submission-filter {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1024px) {
   [data-section-panel='submissions'] .submission-filter {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -583,7 +583,6 @@
           <div class="toolbar-actions">
             <button id="downloadAllButton" type="button">&#19979;&#36733;&#24403;&#21069;&#33539;&#22260;</button>
             <button id="exportSubmissionsButton" class="secondary-button" type="button">&#23548;&#20986;&#25552;&#20132; CSV</button>
-            <button id="viewAllButton" class="secondary-button" type="button">&#26597;&#30475;&#20840;&#37096;&#25552;&#20132;</button>
             <button id="refreshButton" class="secondary-button" type="button">&#21047;&#26032;</button>
             <button id="bulkDeleteSubmissions" class="danger-button" type="button" disabled>&#25209;&#37327;&#21024;&#38500;</button>
           </div>
@@ -593,7 +592,6 @@
           <table class="submission-data-table">
             <thead>
               <tr>
-                <th><input type="checkbox" id="selectAllSubmissions" aria-label="&#20840;&#36873;"></th>
                 <th>&#24207;&#21495;</th>
                 <th>&#25152;&#23646;&#20219;&#21153;</th>
                 <th>&#25552;&#20132;&#20154;</th>
@@ -602,11 +600,13 @@
                 <th>&#25991;&#20214;&#21517;</th>
                 <th>&#26159;&#21542;&#36926;&#26399;</th>
                 <th>&#25805;&#20316;</th>
+                <th>&#21024;&#38500;</th>
+                <th><input type="checkbox" id="selectAllSubmissions" aria-label="&#20840;&#36873;"></th>
               </tr>
             </thead>
             <tbody id="submissionTable">
               <tr>
-                <td colspan="9" class="empty-cell">&#27491;&#22312;&#21152;&#36733;...</td>
+                <td colspan="10" class="empty-cell">&#27491;&#22312;&#21152;&#36733;...</td>
               </tr>
             </tbody>
           </table>

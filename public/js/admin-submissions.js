@@ -126,18 +126,13 @@
     const tableHead = submissionTable.closest('table')?.querySelector('thead');
     if (!items.length) {
       if (tableHead) {
-        tableHead.innerHTML = `
-          <tr><th><input type="checkbox" id="selectAllSubmissions" aria-label="全选"></th><th>序号</th><th>所属任务</th><th>提交人</th><th>上传时间</th><th>原文件名</th><th>文件名</th><th>是否逾期</th><th>操作</th></tr>`;
+        tableHead.innerHTML = '<tr><th>序号</th><th>所属任务</th><th>提交人</th><th>上传时间</th><th>原文件名</th><th>文件名</th><th>是否逾期</th><th>操作</th><th>删除</th><th><input type="checkbox" id="selectAllSubmissions" aria-label="全选"></th></tr>';
       }
-      submissionTable.innerHTML = '<tr><td colspan="9" class="empty-cell">暂无提交记录</td></tr>';
+      submissionTable.innerHTML = '<tr><td colspan="10" class="empty-cell">暂无提交记录</td></tr>';
       return;
     }
     if (tableHead) {
-      tableHead.innerHTML = `
-        <tr>
-          <th><input type="checkbox" id="selectAllSubmissions" aria-label="全选"></th>
-          <th>序号</th><th>所属任务</th><th>提交人</th><th>上传时间</th><th>原文件名</th><th>文件名</th><th>是否逾期</th><th>操作</th>
-        </tr>`;
+      tableHead.innerHTML = '<tr><th>序号</th><th>所属任务</th><th>提交人</th><th>上传时间</th><th>原文件名</th><th>文件名</th><th>是否逾期</th><th>操作</th><th>删除</th><th><input type="checkbox" id="selectAllSubmissions" aria-label="全选"></th></tr>';
     }
     submissionTable.innerHTML = items
       .map(
@@ -161,7 +156,6 @@
           }).join('');
           return `
       <tr>
-        <td><input type="checkbox" class="submission-select" data-submission-id="${item.id}" aria-label="选择提交记录"></td>
         <td>${(page - 1) * perPage + index + 1}</td>
         <td class="submission-assignment-cell" title="${escapeHtml(item.assignmentTitle || '')}">${escapeHtml(item.assignmentTitle || '未分配任务')}</td>
         <td>${escapeHtml(submitterName)}</td>
@@ -169,11 +163,14 @@
         <td>${escapeHtml(item.originalFilename || '')}</td>
         <td>${escapeHtml(fileList.map((f) => f.originalFilename).join('; ') || item.originalFilename || '')}</td>
         <td>${badgeHtml}</td>
-        <td>
-          <div class="submission-file-actions">
-            ${fileCells}
-          </div>
-          <button class="danger-button compact-button" type="button" style="margin-top:4px" data-delete-id="${item.id}">删除记录</button>
+        <td class="submission-actions-cell">
+          <div class="submission-file-actions">${fileCells}</div>
+        </td>
+        <td class="submission-delete-cell">
+          <button class="danger-button compact-button" type="button" data-delete-id="${item.id}">删除记录</button>
+        </td>
+        <td class="submission-select-cell">
+          <input type="checkbox" class="submission-select" data-submission-id="${item.id}" aria-label="选择提交记录">
         </td>
       </tr>`;
         }
