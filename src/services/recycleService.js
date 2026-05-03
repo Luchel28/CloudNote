@@ -1,10 +1,9 @@
 const fs = require('fs');
-const path = require('path');
 
-const { RECYCLE_RETENTION_DAYS, UPLOAD_DIR } = require('../config');
+const { RECYCLE_RETENTION_DAYS } = require('../config');
 const { allDb, beginTransaction, commitTransaction, getDb, rollbackTransaction, runDb } = require('../db');
 const { normalizeStatus } = require('../utils/assignmentUtils');
-const { removeStoredFile } = require('../utils/fileUtils');
+const { removeStoredFile, resolveStoredFilePath } = require('../utils/fileUtils');
 const { msg } = require('../utils/responseUtils');
 
 async function getSubmissionStoredFiles(submissionIds = []) {
@@ -122,7 +121,8 @@ function recycleRetention(deletedAt) {
 function getStoredFileSize(row) {
   const known = Number(row.size || row.file_size || 0);
   if (known > 0) return known;
-  const filePath = path.join(UPLOAD_DIR, row.storedFilename || row.stored_filename || '');
+  const filePath = resolveStoredFilePath(row.storedFilename || row.stored_filename || '');
+  if (!filePath) return 0;
   try {
     return fs.existsSync(filePath) ? fs.statSync(filePath).size : 0;
   } catch {
@@ -290,11 +290,11 @@ async function getRecycleBinData({ type = 'all', search = '', sort = 'recent', p
     deletedFilesForSummary.forEach((row) => {
       const deletedAt = row.deletedAt || row.submissionDeletedAt || new Date().toISOString();
       const retention = recycleRetention(deletedAt);
-      const filePath = path.join(UPLOAD_DIR, row.storedFilename || '');
+      const filePath = resolveStoredFilePath(row.storedFilename || '');
       const deleteSource = row.deleteSource || 'file';
       const assignmentDeleted = row.assignmentStatus === 'deleted';
       const taskScoped = deleteSource === 'task' || assignmentDeleted;
-      const restoreDisabledReason = taskScoped ? '请先恢复所属任务' : !fs.existsSync(filePath) ? '文件已不存在，不能恢复' : '';
+      const restoreDisabledReason = taskScoped ? '请先恢复所属任务' : (!filePath || !fs.existsSync(filePath)) ? '文件已不存在，不能恢复' : '';
       items.push({
         type: 'file',
         id: row.id,
@@ -484,7 +484,10 @@ async function restoreFile(fileId) {
   if (!file) return false;
   if (file.assignmentId && file.assignmentStatus === 'deleted') throw new Error('RESTORE_PARENT_TASK_FIRST');
   if (file.deleteSource === 'task') throw new Error('RESTORE_PARENT_TASK_FIRST');
-  if (file.storedFilename && !fs.existsSync(path.join(UPLOAD_DIR, file.storedFilename))) throw new Error('RESTORE_FILE_MISSING');
+  if (file.storedFilename) {
+    const filePath = resolveStoredFilePath(file.storedFilename);
+    if (!filePath || !fs.existsSync(filePath)) throw new Error('RESTORE_FILE_MISSING');
+  }
   if (file.deleteSource === 'submission' && file.submissionId) return restoreSubmission(file.submissionId);
   await beginTransaction();
   try {

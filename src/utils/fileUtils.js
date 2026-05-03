@@ -76,8 +76,8 @@ function getSubmittedFieldValue(body, key, type) {
 
 function removeStoredFile(storedFilename) {
   if (!storedFilename) return;
-  const filePath = path.join(UPLOAD_DIR, storedFilename);
-  if (fs.existsSync(filePath)) fs.unlink(filePath, () => {});
+  const filePath = resolveStoredFilePath(storedFilename);
+  if (filePath && fs.existsSync(filePath)) fs.unlink(filePath, () => {});
 }
 
 function normalizeStoredFileKey(storedFilename) {
