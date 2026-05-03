@@ -2,11 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const archiver = require('archiver');
 
-const { UPLOAD_DIR } = require('../config');
 const { allDb, getDb, runDb } = require('../db');
 const { requireAdmin } = require('../middleware/requireAdmin');
 const { assignmentSelectSql, formatAssignment, parseJson } = require('../utils/assignmentUtils');
-const { safeName, sendStoredFile } = require('../utils/fileUtils');
+const { resolveStoredFilePath, safeName, sendStoredFile } = require('../utils/fileUtils');
 const { msg } = require('../utils/responseUtils');
 
 function registerDownloadRoutes(app) {
@@ -41,8 +40,8 @@ function registerDownloadRoutes(app) {
       });
       archive.pipe(res);
       files.forEach((file) => {
-        const filePath = path.join(UPLOAD_DIR, file.stored_filename);
-        if (!fs.existsSync(filePath)) return;
+        const filePath = resolveStoredFilePath(file.stored_filename);
+        if (!filePath || !fs.existsSync(filePath)) return;
         const data = parseJson(file.submitterData, {});
         const folder =
           file.downloadStructure === 'task-file'
@@ -62,16 +61,16 @@ function registerDownloadRoutes(app) {
       const files = await allDb('SELECT * FROM submission_files WHERE deleted_at IS NULL AND submission_id = ? ORDER BY id ASC', [req.params.id]);
       if (!files.length) return res.status(404).json({ message: msg('\u6587\u4ef6\u4e0d\u5b58\u5728') });
       if (files.length === 1) {
-        const filePath = path.join(UPLOAD_DIR, files[0].stored_filename);
-        if (!fs.existsSync(filePath)) return res.status(404).json({ message: msg('\u6587\u4ef6\u4e0d\u5b58\u5728') });
+        const filePath = resolveStoredFilePath(files[0].stored_filename);
+        if (!filePath || !fs.existsSync(filePath)) return res.status(404).json({ message: msg('\u6587\u4ef6\u4e0d\u5b58\u5728') });
         return sendStoredFile(res, filePath, files[0].original_filename);
       }
       res.attachment(`cloudnote-submission-${req.params.id}.zip`);
       const archive = archiver('zip', { zlib: { level: 9 } });
       archive.pipe(res);
       files.forEach((file) => {
-        const filePath = path.join(UPLOAD_DIR, file.stored_filename);
-        if (fs.existsSync(filePath)) archive.file(filePath, { name: safeName(file.original_filename) });
+        const filePath = resolveStoredFilePath(file.stored_filename);
+        if (filePath && fs.existsSync(filePath)) archive.file(filePath, { name: safeName(file.original_filename) });
       });
       archive.finalize();
     } catch (error) {
@@ -95,8 +94,8 @@ function registerDownloadRoutes(app) {
       if (!file || file.deleted_at || file.submissionDeletedAt || file.assignmentStatus === 'deleted') {
         return res.status(404).json({ message: msg('\u6587\u4ef6\u4e0d\u5b58\u5728') });
       }
-      const filePath = path.join(UPLOAD_DIR, file.stored_filename);
-      if (!fs.existsSync(filePath)) return res.status(404).json({ message: msg('\u6587\u4ef6\u4e0d\u5b58\u5728') });
+      const filePath = resolveStoredFilePath(file.stored_filename);
+      if (!filePath || !fs.existsSync(filePath)) return res.status(404).json({ message: msg('\u6587\u4ef6\u4e0d\u5b58\u5728') });
       sendStoredFile(res, filePath, file.original_filename);
     } catch (error) {
       console.error(error);
