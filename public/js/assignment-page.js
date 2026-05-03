@@ -20,6 +20,13 @@
   let uploadSubmittedOnce = false;
   let publicConfigReady = null;
 
+  function isHomeEntryPage() {
+    const declaredMode = document.body?.dataset.uploadEntry;
+    if (declaredMode) return declaredMode === 'home';
+    const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
+    return pathname === '/' || pathname.endsWith('/index.html');
+  }
+
   function getElements() {
     const uploadForm = $('#uploadForm');
     return {
@@ -464,7 +471,18 @@
   }
 
   function showUploadLoadError(message) {
+    currentAssignment = null;
+    uploadSubmittedOnce = false;
+    selectedFiles = [];
     document.body.classList.add('upload-invalid-state');
+    if (elements.assignmentIdField) elements.assignmentIdField.value = '';
+    if (elements.dynamicFields) elements.dynamicFields.innerHTML = '<div class="upload-empty-note">当前任务不可用，无法填写上传信息。</div>';
+    if (elements.fileRules) elements.fileRules.innerHTML = '<span>当前无法上传</span><span>请检查任务链接</span>';
+    if (elements.fileInput) elements.fileInput.value = '';
+    if (elements.uploadProgressBar) elements.uploadProgressBar.style.width = '0%';
+    clearSubmitResult();
+    renderSelectedFiles();
+    setUploadSubmitState({ disabled: true, text: '提交作业' });
     elements.uploadTaskName.textContent = message || '任务不存在或链接无效';
     elements.uploadPageIntro.textContent = '请确认班长分享的任务链接是否完整。';
     if (elements.uploadStatusBadge) {
@@ -479,6 +497,46 @@
     setUploadFormDisabled(true);
     setMessage(elements.uploadMessage, message || '任务不存在或链接无效', 'error');
     debugRecord('assignment:loadFailed', { message: message || '任务不存在或链接无效' });
+  }
+
+  function renderHomePlaceholder() {
+    currentAssignment = null;
+    uploadSubmittedOnce = false;
+    selectedFiles = [];
+    document.body.classList.remove('upload-invalid-state');
+    elements.uploadForm?.classList.remove('is-hidden');
+    if (elements.assignmentIdField) elements.assignmentIdField.value = '';
+    if (elements.fileInput) {
+      elements.fileInput.required = false;
+      elements.fileInput.value = '';
+    }
+    if (elements.dynamicFields) {
+      elements.dynamicFields.innerHTML = '<div class="upload-empty-note">请先打开班长分享的任务链接，再填写本次任务所需的信息。</div>';
+    }
+    if (elements.fileRules) {
+      elements.fileRules.innerHTML = '<span>当前未指定任务</span>' + '<span>请通过独立任务链接进入上传</span>' + '<span>首页支持带参数直接加载任务</span>';
+    }
+    if (elements.uploadProgressBar) elements.uploadProgressBar.style.width = '0%';
+    clearSubmitResult();
+    renderSelectedFiles();
+    setUploadSubmitState({ disabled: true, text: '提交作业' });
+    setUploadFormDisabled(true);
+    elements.uploadTaskName.textContent = '默认作业收集入口';
+    elements.uploadPageIntro.textContent = '请使用班长分享的独立任务链接进入具体收集页；如果首页链接携带任务参数，也会自动加载对应任务。';
+    if (elements.uploadStatusBadge) {
+      elements.uploadStatusBadge.textContent = '首页入口';
+      elements.uploadStatusBadge.className = 'upload-status-badge status-home';
+    }
+    if (elements.assignmentMeta) {
+      elements.assignmentMeta.textContent = '';
+      elements.assignmentMeta.className = 'assignment-meta is-hidden';
+    }
+    if (elements.uploadStatusHint) {
+      elements.uploadStatusHint.textContent = '当前是首页默认入口，请通过具体任务链接提交作业。';
+      elements.uploadStatusHint.className = 'upload-status-hint status-home';
+    }
+    setMessage(elements.uploadMessage, '当前是首页默认入口，请使用具体任务链接提交作业。');
+    debugRecord('assignment:renderHomePlaceholder', { message: '首页默认占位已显示' });
   }
 
   function getBlockedSubmitMessage(assignment) {
@@ -496,6 +554,10 @@
     const shareCode = params.get('code');
     const assignmentId = params.get('id') || params.get('assignmentId');
     if (!shareCode && !assignmentId) {
+      if (isHomeEntryPage()) {
+        renderHomePlaceholder();
+        return;
+      }
       showUploadLoadError('任务不存在或链接无效');
       return;
     }
@@ -511,6 +573,10 @@
           });
       currentAssignment = assignment;
       uploadSubmittedOnce = false;
+      selectedFiles = [];
+      if (elements.fileInput) elements.fileInput.value = '';
+      if (elements.uploadProgressBar) elements.uploadProgressBar.style.width = '0%';
+      clearSubmitResult();
       restoreAssignmentIdField();
       setUploadFormDisabled(false);
       renderAssignmentInfo(assignment);

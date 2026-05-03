@@ -4,6 +4,469 @@
  * Assignment list page specific styles.
  */
 
+/* ---- STYLE-1E migrated legacy assignment-list rules ----
+ * Moved from style.css so admin-assignments.css owns the task list page.
+ * This block stays before the existing assignment refinements to preserve final overrides.
+ */
+.task-list-page .assignment-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.task-list-page .assignment-card {
+  display: grid;
+  align-items: start;
+}
+
+.task-list-page .assignment-card h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.task-list-page .assignment-title-row {
+  display: flex;
+  align-items: center;
+}
+
+.task-list-page .assignment-card p {
+  margin: 8px 0 0;
+}
+
+.task-list-page .assignment-info {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.task-list-page .assignment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 360px;
+}
+
+@media (max-width: 1100px) {
+  .task-list-page .assignment-card {
+    grid-template-columns: 1fr;
+  }
+
+  .task-list-page .assignment-actions {
+    justify-content: flex-start;
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .task-list-page .assignment-card {
+    grid-template-columns: 1fr;
+  }
+
+  .task-list-page .assignment-actions {
+    justify-content: flex-start;
+    max-width: none;
+  }
+}
+
+.task-list-page .assignment-page-head {
+  align-items: center;
+  min-height: 86px;
+  margin-bottom: 12px;
+}
+
+.task-list-page .assignment-page-head .eyebrow {
+  margin-bottom: 7px;
+  color: #0aa66a;
+  letter-spacing: 0.35em;
+  font-size: 12px;
+}
+
+.task-list-page .assignment-page-head h1 {
+  color: #101b33;
+  font-size: clamp(28px, 2.8vw, 38px);
+}
+
+.task-list-page .assignment-page-head .intro {
+  max-width: 620px;
+  margin-top: 6px;
+  color: #718198;
+}
+
+.task-list-page .create-assignment-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 24px;
+  white-space: nowrap;
+}
+
+.task-list-page .assignment-toolbar {
+  display: grid;
+  border: 1px solid rgba(31, 42, 61, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 46px rgba(31, 42, 61, 0.08);
+}
+
+.task-list-page .assignment-toolbar .inline-controls {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.task-list-page .assignment-toolbar label {
+  display: grid;
+  gap: 7px;
+  color: #637187;
+  font-weight: 700;
+}
+
+.task-list-page .assignment-search-field {
+  position: relative;
+  min-width: 0;
+}
+
+.task-list-page .assignment-search-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 12px 11px 48px;
+  border: 1px solid rgba(23, 35, 58, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(23, 35, 58, 0.035);
+}
+
+.task-list-page .assignment-toolbar select {
+  min-height: 48px;
+  min-width: 160px;
+  padding: 11px 12px;
+  border: 1px solid rgba(23, 35, 58, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(23, 35, 58, 0.035);
+}
+
+.task-list-page .assignment-page-size select {
+  min-height: 48px;
+  min-width: 160px;
+  border: 1px solid rgba(23, 35, 58, 0.12);
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(23, 35, 58, 0.035);
+}
+
+.task-list-page .toolbar-search-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #9aa8bb;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.task-list-page .toolbar-search-icon::after {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  width: 7px;
+  height: 2px;
+  border-radius: 999px;
+  background: #9aa8bb;
+  transform: rotate(45deg);
+  content: '';
+}
+
+.task-list-page .assignment-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.task-list-page .assignment-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  text-align: left;
+  cursor: pointer;
+  color: #17233a;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 46px rgba(31, 42, 61, 0.08);
+}
+
+.task-list-page .stat-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  font-size: 24px;
+}
+
+.task-list-page .stat-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.task-list-page .stat-copy small {
+  color: #607087;
+  font-size: 13px;
+}
+
+.task-list-page .stat-green .stat-icon {
+  color: #0aa66a;
+  background: rgba(10, 166, 106, 0.14);
+}
+
+.task-list-page .stat-blue .stat-icon {
+  color: #1479f5;
+  background: rgba(20, 121, 245, 0.12);
+}
+
+.task-list-page .stat-purple .stat-icon {
+  color: #8d35f2;
+  background: rgba(141, 53, 242, 0.14);
+}
+
+.task-list-page .stat-orange .stat-icon {
+  color: #f26a2e;
+  background: rgba(242, 106, 46, 0.14);
+}
+
+.task-list-page .stat-red .stat-icon {
+  color: #ff3028;
+  background: rgba(255, 48, 40, 0.12);
+}
+
+.task-list-page .assignment-card-main {
+  min-width: 0;
+}
+
+.task-list-page .assignment-title-row h3 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.task-list-page .assignment-status-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px rgba(10, 166, 106, 0.1);
+}
+
+.task-list-page .status-dot-ongoing {
+  background: #0abf76;
+}
+
+.task-list-page .status-dot-completed {
+  background: #2d7ff9;
+  box-shadow: 0 0 0 5px rgba(45, 127, 249, 0.1);
+}
+
+.task-list-page .status-dot-deleted {
+  background: #ff3028;
+  box-shadow: 0 0 0 5px rgba(255, 48, 40, 0.1);
+}
+
+.task-list-page .assignment-info {
+  align-items: center;
+}
+
+.task-list-page .assignment-info span {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+}
+
+.task-list-page .assignment-link-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-list-page .assignment-link-box span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-list-page .link-copy-icon {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+}
+
+.task-list-page .assignment-actions {
+  display: grid;
+  justify-items: end;
+  max-width: none;
+}
+
+.task-list-page .assignment-action-row {
+  display: flex;
+}
+
+.task-list-page .assignment-action-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.task-list-page .assignment-action-row .secondary-button {
+  color: #078955;
+  border-color: rgba(10, 166, 106, 0.24);
+  background: rgba(10, 166, 106, 0.06);
+}
+
+.task-list-page .assignment-card-deleted button:disabled {
+  color: #aeb6c2;
+  border-color: rgba(23, 35, 58, 0.08);
+  background: rgba(23, 35, 58, 0.04);
+  cursor: not-allowed;
+}
+
+.task-list-page .assignment-card-deleted .link-copy-icon:disabled {
+  color: #aeb6c2;
+  border-color: rgba(23, 35, 58, 0.08);
+  background: rgba(23, 35, 58, 0.04);
+  cursor: not-allowed;
+}
+
+.task-list-page .assignment-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+  color: #607087;
+}
+
+.task-list-page .assignment-empty-state strong {
+  color: #17233a;
+  font-size: 18px;
+}
+
+.task-list-page .assignment-empty-state p {
+  margin: 0;
+}
+
+.task-list-page .assignment-pagination-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.task-list-page .assignment-pagination-wrap .pagination {
+  justify-content: center;
+  flex: 1;
+  margin-top: 0;
+}
+
+.task-list-page .assignment-page-size {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.task-list-page .assignment-page-size label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 1280px) {
+  .task-list-page .assignment-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-list-page .assignment-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .task-list-page .assignment-action-row {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 760px) {
+  .task-list-page .assignment-page-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .task-list-page .assignment-pagination-wrap {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .task-list-page .assignment-toolbar .inline-controls {
+    justify-content: stretch;
+  }
+
+  .task-list-page .assignment-action-row {
+    justify-content: stretch;
+  }
+
+  .task-list-page .assignment-page-size {
+    justify-content: stretch;
+  }
+
+  .task-list-page .assignment-toolbar .inline-controls > * {
+    width: 100%;
+  }
+
+  .task-list-page .assignment-toolbar select {
+    width: 100%;
+  }
+
+  .task-list-page .create-assignment-button {
+    width: 100%;
+  }
+
+  .task-list-page .assignment-action-row button {
+    width: 100%;
+  }
+
+  .task-list-page .assignment-page-size label {
+    width: 100%;
+  }
+
+  .task-list-page .assignment-page-size select {
+    width: 100%;
+  }
+
+  .task-list-page .assignment-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-list-page .assignment-stat-card {
+    min-height: 112px;
+    padding: 16px;
+  }
+
+  .task-list-page .assignment-link-box span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-list-page .assignment-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---- Section 8: Assignment List Page ---- */
 
 /* Filter toolbar */
@@ -45,7 +508,10 @@
   min-height: 104px;
   padding: 16px 20px;
   border: 1px solid rgba(23, 35, 58, 0.06);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 .task-list-page .stat-copy strong {
   font-size: 28px;
@@ -72,7 +538,9 @@
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 2px 12px rgba(23, 35, 58, 0.04);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 .task-list-page .assignment-card:hover {
   border-color: rgba(10, 166, 106, 0.22);
@@ -238,7 +706,6 @@
   }
 }
 
-
 /* Description left-align */
 .task-list-page .assignment-card {
   text-align: left;
@@ -248,13 +715,12 @@
   text-align: left;
 }
 
-
 /* ---- Section 9: Stat enhance, desc align, spacing ---- */
 
 /* Stat card hover enhanced */
 .task-list-page .assignment-stat-card:hover {
   transform: translateY(-1px);
-  background: linear-gradient(135deg, rgba(10, 166, 106, 0.10), rgba(255, 255, 255, 0.96)) !important;
+  background: linear-gradient(135deg, rgba(10, 166, 106, 0.1), rgba(255, 255, 255, 0.96)) !important;
   border-color: rgba(10, 166, 106, 0.35);
   box-shadow: 0 10px 24px rgba(10, 166, 106, 0.12);
 }

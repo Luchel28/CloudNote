@@ -4,40 +4,80 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CloudNote &#20316;&#19994;&#25910;&#38598;&#31995;&#32479;</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/assets/icons/assignment-iconfont/font_5169802_qsz37uf46ac/iconfont.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/assignment.css">
 </head>
-<body>
-  <main class="page">
+<body class="upload-page" data-upload-entry="home">
+  <main class="page upload-page-shell">
     <section class="panel upload-panel">
-      <div class="brand-row">
-        <img class="brand-logo" src="/assets/cloudnote-logo.jpg" alt="CloudNote logo">
-        <a class="admin-link" href="/admin.html">&#29677;&#38271;&#21518;&#21488;</a>
+      <div class="brand-row upload-brand-row">
+        <div class="upload-brand">
+          <img class="brand-logo" src="/assets/cloudnote-logo.jpg" alt="CloudNote logo">
+          <div>
+            <p class="eyebrow">CLOUDNOTE</p>
+            <h1 id="uploadPageTitle">&#20113;&#31546;</h1>
+          </div>
+        </div>
+        <a class="admin-link upload-admin-link" href="/admin.html">&#29677;&#38271;&#21518;&#21488;</a>
       </div>
 
-      <p class="eyebrow">CLOUDNOTE</p>
-      <h1 id="uploadPageTitle">&#20113;&#31546;</h1>
-      <p id="uploadTaskName" class="intro">&#40664;&#35748;&#20316;&#19994;&#25910;&#38598;</p>
-      <p id="uploadPageIntro" class="intro secondary-intro">&#22635;&#20889;&#20449;&#24687;&#24182;&#19978;&#20256;&#25991;&#20214;&#65292;&#25552;&#20132;&#21518;&#29677;&#38271;&#21487;&#20197;&#22312;&#21518;&#21488;&#26597;&#30475;&#21644;&#19979;&#36733;&#12290;</p>
-      <p id="assignmentMeta" class="assignment-meta is-hidden"></p>
+      <section class="upload-task-card" aria-labelledby="uploadTaskName">
+        <div class="upload-task-head">
+          <div>
+            <span id="uploadStatusBadge" class="upload-status-badge status-home">&#39318;&#39029;&#20837;&#21475;</span>
+            <h2 id="uploadTaskName">&#40664;&#35748;&#20316;&#19994;&#25910;&#38598;&#20837;&#21475;</h2>
+          </div>
+          <p id="assignmentMeta" class="assignment-meta is-hidden"></p>
+        </div>
+        <p id="uploadPageIntro" class="intro secondary-intro">&#35831;&#20351;&#29992;&#29677;&#38271;&#21457;&#24067;&#30340;&#29420;&#31435;&#20219;&#21153;&#38142;&#25509;&#36827;&#20837;&#20855;&#20307;&#25910;&#38598;&#39029;&#12290;</p>
+        <p id="uploadStatusHint" class="upload-status-hint status-home">&#24403;&#21069;&#26159;&#39318;&#39029;&#40664;&#35748;&#20837;&#21475;&#65292;&#33509;&#38142;&#25509;&#25658;&#24102;&#20219;&#21153;&#21442;&#25968;&#65292;&#39029;&#38754;&#20063;&#20250;&#33258;&#21160;&#21152;&#36733;&#23545;&#24212;&#20219;&#21153;&#12290;</p>
+      </section>
 
-      <form id="uploadForm" class="form-card">
+      <form id="uploadForm" class="form-card upload-form-card" novalidate>
         <input id="assignmentIdField" type="hidden" name="assignmentId">
 
-        <div id="dynamicFields" class="dynamic-fields"></div>
+        <div class="upload-form-grid">
+          <section class="upload-section upload-info-section">
+            <div class="upload-section-title">
+              <span>01</span>
+              <h3>&#22635;&#20889;&#20449;&#24687;</h3>
+            </div>
+            <div id="dynamicFields" class="dynamic-fields upload-dynamic-fields"></div>
+            <div class="upload-info-note" aria-label="&#20449;&#24687;&#25552;&#31034;">
+              <span class="upload-note-icon" aria-hidden="true">&#10003;</span>
+              <p>&#20449;&#24687;&#20165;&#29992;&#20110;&#26412;&#27425;&#25991;&#20214;&#25910;&#38598;&#65292;<br>&#35831;&#30830;&#20445;&#22635;&#20889;&#20934;&#30830;&#12290;</p>
+            </div>
+          </section>
 
-        <label class="file-field">
-          <span>&#36873;&#25321;&#25991;&#20214;</span>
-          <input id="fileInput" type="file" name="files" multiple required>
-        </label>
+          <section class="upload-section upload-file-section">
+            <div class="upload-section-title">
+              <span>02</span>
+              <h3>&#19978;&#20256;&#25991;&#20214;</h3>
+            </div>
+            <div id="fileRules" class="file-rules upload-file-rules"></div>
+            <label id="uploadDropzone" class="upload-dropzone" for="fileInput">
+              <input id="fileInput" type="file" name="files" multiple>
+              <span class="upload-drop-icon" aria-hidden="true">&#8593;</span>
+              <strong>&#28857;&#20987;&#25110;&#25302;&#25341;&#25991;&#20214;&#21040;&#27492;&#22788;&#19978;&#20256;</strong>
+              <span>&#21487;&#19968;&#27425;&#36873;&#25321;&#22810;&#20010;&#25991;&#20214;&#65292;&#25552;&#20132;&#21069;&#21487;&#38543;&#26102;&#21024;&#38500;&#12290;</span>
+            </label>
+            <div id="selectedFileList" class="selected-file-list upload-selected-files"></div>
+          </section>
+        </div>
 
-        <div id="fileRules" class="file-rules"></div>
-        <div id="selectedFileList" class="selected-file-list"></div>
-        <div class="progress-track"><span id="uploadProgressBar"></span></div>
-        <button type="submit">&#25552;&#20132;&#20316;&#19994;</button>
-        <p id="uploadMessage" class="message" role="status"></p>
-        <div id="submitResult" class="submit-result is-hidden"></div>
+        <section class="upload-section upload-submit-section">
+          <div class="progress-track"><span id="uploadProgressBar"></span></div>
+          <div class="upload-submit-row">
+            <p id="uploadMessage" class="message" role="status"></p>
+            <button type="submit"><i class="iconfont icon-24gl-paperPlane" aria-hidden="true"></i><span class="upload-submit-text">&#25552;&#20132;&#20316;&#19994;</span></button>
+          </div>
+          <div id="submitResult" class="submit-result is-hidden"></div>
+        </section>
       </form>
     </section>
+    <footer class="upload-footer">&#128274; &#25991;&#20214;&#25910;&#38598;&#24037;&#20855; &#183; &#23433;&#20840; &#183; &#31616;&#21333; &#183; &#39640;&#25928;</footer>
   </main>
 
   <script src="/js/common.js"></script>
