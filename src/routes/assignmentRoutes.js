@@ -87,8 +87,10 @@ function registerAssignmentRoutes(app) {
           whereParts.push("a.status = 'ongoing' AND a.deadline IS NOT NULL AND datetime(a.deadline) < datetime('now')");
         } else if (status === 'completed') {
           whereParts.push(
-            "(a.status IN ('ended', 'archived', 'completed') OR (a.status = 'ongoing' AND a.deadline IS NOT NULL AND datetime(a.deadline) < datetime('now')))"
+            "(a.status IN ('ended', 'archived', 'completed') OR (a.status = 'ongoing' AND a.deadline IS NOT NULL AND a.deadline != '' AND datetime(a.deadline) < datetime('now')))"
           );
+        } else if (status === 'ongoing') {
+          whereParts.push("(a.status = 'ongoing' AND (a.deadline IS NULL OR a.deadline = '' OR datetime(a.deadline) >= datetime('now')))");
         } else {
           whereParts.push('a.status = ?');
           params.push(normalizeStatus(status));
