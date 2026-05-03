@@ -24,12 +24,6 @@
 }
 
 /* ---- 一、内容宽度 ---- */
-.admin-content > .admin-section {
-  max-width: 1480px;
-  margin-left: auto;
-  margin-right: auto;
-  border-radius: 16px;
-}
 .admin-content > .admin-section[data-section-panel='tasks'],
 .admin-content > .admin-section[data-section-panel='submissions'] {
   max-width: 1520px;
