@@ -2,7 +2,7 @@ const js = require('@eslint/js');
 
 module.exports = [
   {
-    ignores: ['**/node_modules/**', '**/uploads/**', '**/*.db', '**/logs/**', '**/public/assets/**', '**/public/js/lib/**'],
+    ignores: ['**/node_modules/**', '**/uploads/**', '**/*.db', '**/logs/**', '**/dist/**', '**/public/assets/**'],
   },
   js.configs.recommended,
   {

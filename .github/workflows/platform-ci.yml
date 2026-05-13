@@ -1,0 +1,79 @@
+name: Platform CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  platform:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cloudnote
+          POSTGRES_USER: cloudnote
+          POSTGRES_PASSWORD: cloudnote_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cloudnote -d cloudnote"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgres://cloudnote:cloudnote_dev_password@localhost:5432/cloudnote
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin123456
+      ADMIN_JWT_SECRET: ci-platform-secret
+      CLOUDNOTE_REQUIRE_DATABASE: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build platform
+        run: npm run build:platform
+
+      - name: Run PostgreSQL migrations
+        run: npm run db:migrate
+
+      - name: Start API
+        run: |
+          nohup npm run dev > /tmp/cloudnote-api.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://localhost:3001/api/v1/health > /tmp/cloudnote-health.json; then
+              cat /tmp/cloudnote-health.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cloudnote-api.log
+          exit 1
+
+      - name: Smoke test platform
+        run: npm run smoke:platform
+
+      - name: Smoke test migrated web shell
+        run: npm run smoke:platform:web
+
+      - name: Smoke test opt-in web app shells
+        run: npm run smoke:platform:web-apps
+
+      - name: Smoke test backup script
+        run: npm run smoke:platform:backup

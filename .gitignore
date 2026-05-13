@@ -7,6 +7,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Build artifacts
+dist/
+apps/*/dist/
+
 # Environment and secrets
 .env
 .env.local
@@ -18,13 +22,8 @@ uploads/*
 !uploads/.gitkeep
 public/uploads/
 
-# SQLite databases and runtime data
+# Runtime data
 *.db
-*.sqlite
-*.sqlite3
-cloudnote.db
-cloudnote.sqlite
-cloudnote.sqlite3
 data/
 database/
 db/

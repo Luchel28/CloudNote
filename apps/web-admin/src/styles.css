@@ -1,0 +1,18 @@
+@import '../public/assets/ui/admin-icons/iconfont.css';
+@import './assets/styles/style.css';
+@import './assets/styles/admin-overrides.css';
+@import './assets/styles/admin-assignments.css';
+@import './assets/styles/admin-statistics.css';
+@import './assets/styles/admin-submissions.css';
+@import './assets/styles/admin-recycle.css';
+@import './assets/styles/admin-create.css';
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}

@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'cloudnote',
-      script: 'server.js',
+      script: 'dist/apps/api/src/main.js',
       cwd: __dirname,
       instances: 1,
       exec_mode: 'fork',

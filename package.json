@@ -2,10 +2,18 @@
   "name": "cloudnote",
   "version": "1.0.0",
   "description": "CloudNote homework collection system",
-  "main": "server.js",
+  "main": "dist/apps/api/src/main.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
+    "start": "node dist/apps/api/src/main.js",
+    "dev": "node -r ts-node/register -r tsconfig-paths/register apps/api/src/main.ts",
+    "build:platform": "tsc -p apps/api/tsconfig.build.json && npm --prefix apps/web-admin run build && npm --prefix apps/web-student run build",
+    "db:migrate": "node -r ts-node/register -r tsconfig-paths/register apps/api/src/database/run-migrations.ts",
+    "smoke:platform": "node scripts/platform-smoke.mjs",
+    "smoke:platform:web": "node scripts/platform-web-smoke.mjs",
+    "smoke:platform:web-apps": "node scripts/platform-web-apps-smoke.mjs",
+    "smoke:platform:backup": "node scripts/platform-backup-smoke.mjs",
+    "smoke:platform:verify": "node scripts/platform-verify.mjs",
+    "typecheck": "tsc -p apps/api/tsconfig.build.json --noEmit",
     "lint": "eslint . --ext .js --ignore-pattern node_modules --ignore-pattern uploads",
     "lint:fix": "eslint . --ext .js --ignore-pattern node_modules --ignore-pattern uploads --fix",
     "format": "prettier --write \"**/*.js\" \"**/*.css\" \"**/*.json\" --ignore-path .gitignore",
@@ -16,15 +24,26 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.19",
+    "@nestjs/platform-express": "^11.1.19",
     "archiver": "^7.0.1",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "multer": "^2.1.1",
-    "sqlite3": "^6.0.1"
+    "pg": "^8.20.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/multer": "^2.1.0",
+    "@types/pg": "^8.20.0",
     "eslint": "^10.3.0",
-    "prettier": "^3.8.3"
+    "prettier": "^3.8.3",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
   }
 }

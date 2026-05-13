@@ -1,0 +1,443 @@
+/*
+ * CloudNote Admin Overrides
+ * 仅用于后台管理端的低风险覆盖样式。
+ * 不影响学生上传页。
+ */
+
+/* Admin fixed shell scroll patch */
+.admin-workbench {
+  height: calc(100vh - clamp(18px, 3vw, 42px) * 2);
+  min-height: 0;
+}
+.admin-topbar,
+.admin-sidebar,
+.admin-content {
+  min-height: 0;
+}
+.admin-sidebar {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.admin-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ---- 一、内容宽度 ---- */
+.admin-content > .admin-section[data-section-panel='tasks'],
+.admin-content > .admin-section[data-section-panel='submissions'] {
+  max-width: 1520px;
+}
+.admin-content > .admin-section[data-section-panel='recycle'] {
+  max-width: 1480px;
+}
+
+/* ---- 二、标题收紧 ---- */
+.admin-content .section-head { margin-bottom: 18px; }
+.admin-content .section-head .eyebrow {
+  margin-bottom: 4px;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+}
+.admin-content .section-head h1 {
+  font-size: clamp(26px, 2.6vw, 38px);
+  margin-bottom: 4px;
+}
+.admin-content .section-head .intro {
+  max-width: 620px;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #718198;
+}
+.admin-content .assignment-page-head { margin-bottom: 14px; min-height: 0; }
+.admin-content .assignment-page-head .eyebrow {
+  margin-bottom: 4px;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: #0aa66a;
+}
+.admin-content .assignment-page-head h1 {
+  font-size: clamp(25px, 2.4vw, 34px);
+  color: #101b33;
+}
+.admin-content .assignment-page-head .intro {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #718198;
+}
+
+/* ---- 三、筛选卡片 ---- */
+.admin-content .filter-card {
+  border-radius: 14px;
+  border: 1px solid rgba(23, 35, 58, 0.08);
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(23, 35, 58, 0.04);
+  padding: 18px 20px;
+  margin: 16px 0;
+  gap: 16px;
+}
+.admin-content .filter-card label { gap: 6px; }
+.admin-content .filter-card label > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #637187;
+}
+.admin-content .filter-card input,
+.admin-content .filter-card select {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(23, 35, 58, 0.14);
+  background: #f9fbfb;
+  color: #17233a;
+  font-size: 13px;
+}
+.admin-content .filter-card input[type="date"] { min-width: 160px; }
+.admin-content .filter-card input:focus,
+.admin-content .filter-card select:focus {
+  border-color: #0aa66a;
+  box-shadow: 0 0 0 3px rgba(10, 166, 106, 0.08);
+}
+.admin-content .filter-card input[type="search"] {
+  border-radius: 10px;
+  padding-left: 36px;
+}
+.admin-content .stats-toolbar.filter-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+}
+.admin-content .stats-toolbar.filter-card label { min-width: 240px; }
+
+/* ---- 四、按钮 ---- */
+.admin-section button { border-radius: 10px; font-weight: 600; }
+.admin-content .primary-button {
+  background: linear-gradient(135deg, #088d56, #1ab870);
+  box-shadow: 0 8px 18px rgba(10, 166, 106, 0.18);
+  border: none;
+}
+.admin-content .primary-button:hover {
+  background: linear-gradient(135deg, #067546, #13a763);
+  box-shadow: 0 10px 22px rgba(10, 166, 106, 0.24);
+}
+.admin-content .secondary-button {
+  color: #0a8b59;
+  background: rgba(10, 166, 106, 0.08);
+  border: 1px solid rgba(10, 166, 106, 0.18);
+}
+.admin-content .secondary-button:hover {
+  color: #067546;
+  background: rgba(10, 166, 106, 0.14);
+}
+.admin-content .danger-button { background: #d92d20; }
+.admin-content .danger-button:hover { background: #b8241a; }
+.admin-content .danger-outline-button {
+  color: #cf2f24;
+  background: rgba(217, 45, 32, 0.04);
+  border: 1px solid rgba(217, 45, 32, 0.3);
+}
+.admin-content .danger-outline-button:hover { color: #fff; background: #d92d20; }
+.admin-content button:disabled {
+  opacity: 0.45;
+  filter: grayscale(0.3);
+  cursor: not-allowed;
+}
+.admin-content .compact-button {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+/* ---- 五、表格 ---- */
+.admin-content .table-wrap {
+  border-radius: 14px;
+  border: 1px solid rgba(23, 35, 58, 0.08);
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(23, 35, 58, 0.03);
+  overflow-x: auto;
+}
+.admin-content .table-wrap th {
+  background: #f2f7f5;
+  color: #3a4d6b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 14px;
+  border-bottom: 2px solid rgba(10, 166, 106, 0.12);
+}
+.admin-content .table-wrap td {
+  padding: 14px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(23, 35, 58, 0.06);
+  color: #17233a;
+}
+.admin-content .table-wrap tbody tr:last-child td { border-bottom: none; }
+.admin-content .table-wrap tbody tr:hover td { background: rgba(10, 166, 106, 0.04); }
+.admin-content .table-wrap .empty-cell {
+  padding: 32px 14px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ---- 六、状态标记 ---- */
+.admin-content .status-badge {
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-content .status-ongoing {
+  color: #0d7c4b;
+  background: rgba(10, 166, 106, 0.1);
+}
+.admin-content .status-completed,
+.admin-content .status-ended,
+.admin-content .status-archived {
+  color: #2f46b8;
+  background: rgba(47, 70, 184, 0.08);
+}
+.admin-content .status-expired {
+  color: #b87004;
+  background: rgba(245, 158, 11, 0.12);
+}
+.admin-content .status-deleted {
+  color: #a81e1a;
+  background: rgba(217, 45, 32, 0.08);
+}
+.admin-content .filter-pill,
+.admin-content .notice-bar { border-radius: 10px; }
+.admin-content .filter-pill { padding: 8px 14px; font-size: 13px; }
+.admin-content .segmented-control { border-radius: 10px; }
+.admin-content .segmented-control button {
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ---- 七、卡片与空状态 ---- */
+.admin-content .empty-card {
+  border: 2px dashed rgba(23, 35, 58, 0.12);
+  border-radius: 18px;
+  padding: 40px 24px;
+  background: transparent;
+}
+.admin-content .empty-card strong { font-size: 16px; color: #586880; }
+.admin-content .empty-card p { color: #8a9ab5; }
+.admin-content .assignment-stat-card {
+  border-radius: 16px;
+  min-height: 108px;
+  padding: 18px 22px;
+}
+.admin-content .assignment-stat-card:hover { transform: translateY(-1px); }
+.admin-content .chart-card { border-radius: 14px; }
+.admin-content .bulk-action-bar {
+  border-radius: 12px;
+  border: 1px solid rgba(23, 35, 58, 0.08);
+}
+.admin-content .pagination-page,
+.admin-content .pagination-arrow {
+  border-radius: 8px;
+  min-height: 38px;
+  min-width: 38px;
+  font-size: 13px;
+}
+.admin-content .pagination-page.is-active {
+  background: #0aa66a;
+  border-color: #0aa66a;
+  color: #fff;
+}
+
+@media (max-width: 760px) {
+  .admin-content .filter-card { padding: 14px 16px; gap: 12px; }
+}
+
+/* Admin common spacing */
+.admin-content {
+  padding-left: clamp(10px, 1vw, 20px);
+  padding-right: clamp(16px, 2vw, 30px);
+}
+.admin-sidebar {
+  padding-left: 10px;
+  padding-right: 14px;
+}
+.admin-content > .admin-section {
+  margin-left: 0;
+  margin-right: auto;
+  border-radius: 18px;
+}
+
+
+/* ---- 十一、自适应宽度 ---- */
+
+.admin-content > .admin-section {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+}
+
+.admin-content > .admin-section[data-section-panel='tasks'],
+.admin-content > .admin-section[data-section-panel='submissions'],
+.admin-content > .admin-section[data-section-panel='recycle'] {
+  max-width: none;
+}
+
+.admin-page.is-login-state {
+  min-height: 100vh;
+  padding: 4px;
+  background: linear-gradient(180deg, #e8f3f4 0%, #f7fbfa 18%, #f7fbfa 100%);
+}
+
+.admin-page.is-login-state .login-panel {
+  min-height: calc(100vh - 8px);
+  padding: 52px 54px 44px;
+  border: 1px solid rgba(23, 35, 58, 0.08);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 24px 70px rgba(23, 35, 58, 0.12);
+}
+
+.admin-login-shell {
+  display: grid;
+  gap: 32px;
+  align-content: start;
+  min-height: 100%;
+}
+
+.admin-login-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.admin-login-brand {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.admin-login-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-login-copy .eyebrow {
+  margin: 0;
+  color: #0aa66a;
+  font-size: 16px;
+  letter-spacing: 0.2em;
+}
+
+.admin-login-copy h1 {
+  margin: 0;
+  color: #17233a;
+  font-size: clamp(44px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.admin-login-copy .intro {
+  max-width: 520px;
+  margin: 0;
+  color: #7b889d;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.admin-login-link {
+  margin-top: 30px;
+  color: #078955;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.admin-login-form {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.62fr) minmax(320px, 1.28fr);
+  align-items: end;
+  gap: 22px;
+  margin-top: 12px;
+}
+
+.admin-login-field {
+  gap: 14px;
+}
+
+.admin-login-field > span {
+  color: #17233a;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.admin-login-field input {
+  min-height: 58px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(23, 35, 58, 0.14);
+  background: #fff;
+  font-size: 17px;
+}
+
+.admin-login-button {
+  min-height: 50px;
+  margin-top: auto;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.admin-login-error {
+  margin: -6px 0 0;
+}
+
+.topbar-logout {
+  min-width: 92px;
+}
+
+.nav-item-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border: 1px solid currentColor;
+  border-radius: 9px;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.nav-item::before {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .admin-page.is-login-state .login-panel {
+    padding: 28px 22px;
+  }
+
+  .admin-login-head,
+  .admin-login-form {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .admin-login-link {
+    margin-top: 0;
+  }
+}
+
+.create-task-debug-toolbar,
+.cloudnote-debug-toolbar,
+.debug-toggle-btn,
+.cloudnote-debug-panel {
+  display: none !important;
+}

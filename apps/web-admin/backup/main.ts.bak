@@ -1,0 +1,1517 @@
+import './styles.css';
+import { CloudNoteApiError, CloudNoteClient } from '@cloudnote/sdk';
+import type {
+  AdminLoginRequest,
+  AssignmentDto,
+  AssignmentFieldDto,
+  AssignmentMutationInput,
+  AssignmentStatus,
+  DownloadStructure,
+  EffectiveAssignmentStatus,
+  HealthCheckDto,
+  PublicConfigDto,
+  RecycleItemDto,
+  RecycleItemType,
+  StatisticsDto,
+  StorageSummaryDto,
+  SubmissionDto,
+  TemplateCategory,
+  TemplateDto,
+  TemplateMutationInput,
+  TemplateVisibility,
+  UserDto,
+} from '@cloudnote/shared-types';
+
+type AdminView = 'overview' | 'assignments' | 'submissions' | 'templates' | 'statistics' | 'recycle' | 'system';
+
+interface PageState {
+  page: number;
+  perPage: number;
+  search: string;
+}
+
+interface AssignmentPageState extends PageState {
+  status: string;
+}
+
+interface SubmissionPageState extends PageState {
+  assignmentId: string;
+  status: string;
+}
+
+interface TemplatePageState extends PageState {
+  category: string;
+}
+
+interface RecyclePageState extends PageState {
+  type: string;
+}
+
+const tokenKey = 'cloudnote.admin.token';
+const api = new CloudNoteClient({ token: localStorage.getItem(tokenKey) || '' });
+const appRoot = document.querySelector<HTMLDivElement>('#app');
+
+if (!appRoot) throw new Error('Missing app root.');
+const app: HTMLDivElement = appRoot;
+
+const defaultFields: AssignmentFieldDto[] = [
+  {
+    key: 'studentName',
+    label: '姓名',
+    type: 'name',
+    category: 'basic',
+    required: true,
+    enabled: true,
+    visible: true,
+    system: true,
+  },
+  {
+    key: 'studentId',
+    label: '学号',
+    type: 'digits',
+    category: 'custom',
+    required: true,
+    enabled: true,
+    visible: true,
+  },
+  {
+    key: 'homeworkTitle',
+    label: '作业标题',
+    type: 'single_line',
+    category: 'custom',
+    required: false,
+    enabled: true,
+    visible: true,
+  },
+];
+
+const defaultFileRules: AssignmentDto['fileRules'] = {
+  requiredUpload: true,
+  fileType: 'document',
+  allowedExtensions: ['doc', 'docx', 'pdf', 'zip'],
+  enableLimit: true,
+  maxFileSizeMB: 100,
+  maxFileCount: 1,
+  enableRename: true,
+  renameFields: ['studentId', 'studentName'],
+  allowFolder: true,
+};
+
+let token = localStorage.getItem(tokenKey) || '';
+let activeView: AdminView = 'overview';
+let currentUser: UserDto | null = null;
+let health: HealthCheckDto | null = null;
+let config: PublicConfigDto | null = null;
+let storage: StorageSummaryDto | null = null;
+let statistics: StatisticsDto | null = null;
+let assignments: AssignmentDto[] = [];
+let submissions: SubmissionDto[] = [];
+let recentSubmissions: SubmissionDto[] = [];
+let templates: TemplateDto[] = [];
+let recycleItems: RecycleItemDto[] = [];
+let appliedMigrations: string[] = [];
+let assignmentEditor: AssignmentDto | null = null;
+let assignmentSeed: Partial<AssignmentMutationInput> | null = null;
+let templateEditor: TemplateDto | null = null;
+let noticeText = '';
+let errorText = '';
+let isBusy = false;
+let assignmentsTotal = 0;
+let submissionsTotal = 0;
+let templatesTotal = 0;
+let recycleTotal = 0;
+let selectedStatisticsAssignmentId = '';
+
+const assignmentQuery: AssignmentPageState = { page: 1, perPage: 100, search: '', status: '' };
+const submissionQuery: SubmissionPageState = { page: 1, perPage: 50, search: '', assignmentId: '', status: '' };
+const templateQuery: TemplatePageState = { page: 1, perPage: 50, search: '', category: '' };
+const recycleQuery: RecyclePageState = { page: 1, perPage: 50, search: '', type: '' };
+
+function html(strings: TemplateStringsArray, ...values: unknown[]): string {
+  return strings.reduce((result, part, index) => `${result}${part}${values[index] ?? ''}`, '');
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function checked(value: boolean | undefined): string {
+  return value ? 'checked' : '';
+}
+
+function selected(value: string | number | null | undefined, current: string | number | null | undefined): string {
+  return String(value ?? '') === String(current ?? '') ? 'selected' : '';
+}
+
+function option(value: string, label: string, current: string | null | undefined): string {
+  return `<option value="${escapeHtml(value)}" ${selected(value, current)}>${escapeHtml(label)}</option>`;
+}
+
+function jsonText(value: unknown): string {
+  return escapeHtml(JSON.stringify(value, null, 2));
+}
+
+function formatDate(value: string | null | undefined): string {
+  if (!value) return '无';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '无效日期';
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
+}
+
+function formatBytes(value: number): string {
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  if (value < 1024 * 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} MB`;
+  return `${(value / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+function toDatetimeLocal(value: string | null | undefined): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const localTime = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 16);
+}
+
+function statusLabel(status: EffectiveAssignmentStatus): string {
+  return (
+    {
+      ongoing: '进行中',
+      expired: '已过期',
+      ended: '已结束',
+      archived: '已归档',
+      deleted: '已删除',
+    }[status] || status
+  );
+}
+
+function categoryLabel(category: string | null | undefined): string {
+  return (
+    {
+      course: '课程',
+      exam: '考试',
+      material: '资料',
+    }[String(category || '')] || '课程'
+  );
+}
+
+function visibilityLabel(visibility: string | null | undefined): string {
+  return visibility === 'class' ? '班级可见' : '仅自己可见';
+}
+
+function recycleTypeLabel(type: string | null | undefined): string {
+  return (
+    {
+      task: '任务',
+      submission: '提交',
+      file: '文件',
+      template: '模板',
+    }[String(type || '')] || String(type || '未知')
+  );
+}
+
+function statusTone(status: EffectiveAssignmentStatus): string {
+  if (status === 'ongoing') return 'good';
+  if (status === 'expired') return 'warn';
+  if (status === 'deleted' || status === 'archived') return 'quiet';
+  return 'stop';
+}
+
+function splitCsv(value: string): string[] {
+  return value
+    .split(/[,\n]/)
+    .map((item) => item.trim().replace(/^\./, '').toLowerCase())
+    .filter(Boolean);
+}
+
+function getFormString(form: FormData, key: string): string {
+  return String(form.get(key) || '').trim();
+}
+
+function getFormNumber(form: FormData, key: string, fallback: number): number {
+  const value = Number(getFormString(form, key));
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function getFormCheckbox(form: FormData, key: string): boolean {
+  return form.get(key) === 'on';
+}
+
+function showError(error: unknown): void {
+  errorText = error instanceof CloudNoteApiError ? `${error.code}: ${error.message}` : error instanceof Error ? error.message : String(error);
+  noticeText = '';
+  render();
+}
+
+function metric(label: string, value: string | number, detail = ''): string {
+  return html`
+    <article class="metric">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+      ${detail ? `<small>${escapeHtml(detail)}</small>` : ''}
+    </article>
+  `;
+}
+
+function publicAssignmentUrl(assignment: AssignmentDto): string {
+  const base = (config?.publicBaseUrl || location.origin).replace(/\/+$/, '');
+  return `${base}/student/?id=${assignment.id}&code=${encodeURIComponent(assignment.shareCode)}`;
+}
+
+function assignmentToMutation(assignment: AssignmentDto): AssignmentMutationInput {
+  return {
+    title: assignment.title,
+    description: assignment.description,
+    deadline: assignment.deadline,
+    status: assignment.status,
+    collectFields: assignment.collectFields,
+    fileRules: assignment.fileRules,
+    allowLate: assignment.allowLate,
+    allowRepeat: assignment.allowRepeat,
+    repeatMode: assignment.repeatMode,
+    downloadStructure: assignment.downloadStructure,
+  };
+}
+
+function defaultAssignmentDraft(): AssignmentMutationInput {
+  return {
+    title: '',
+    description: '',
+    deadline: null,
+    status: 'ongoing',
+    collectFields: defaultFields,
+    fileRules: defaultFileRules,
+    allowLate: false,
+    allowRepeat: true,
+    repeatMode: 'new',
+    downloadStructure: 'task-field-file',
+  };
+}
+
+function normalizeAssignmentSeed(data: Record<string, unknown>): Partial<AssignmentMutationInput> {
+  const fields = Array.isArray(data.collectFields) ? data.collectFields : Array.isArray(data.fieldConfig) ? data.fieldConfig : undefined;
+  const fileRules = data.fileRules && typeof data.fileRules === 'object' && !Array.isArray(data.fileRules) ? data.fileRules : {};
+  return {
+    title: typeof data.title === 'string' ? data.title : '',
+    description: typeof data.description === 'string' ? data.description : '',
+    deadline: typeof data.deadline === 'string' ? data.deadline : null,
+    status: ['ongoing', 'ended', 'archived', 'deleted'].includes(String(data.status)) ? (data.status as AssignmentStatus) : 'ongoing',
+    collectFields: fields as AssignmentFieldDto[] | undefined,
+    fileRules: fileRules as AssignmentDto['fileRules'],
+    allowLate: typeof data.allowLate === 'boolean' ? data.allowLate : false,
+    allowRepeat: typeof data.allowRepeat === 'boolean' ? data.allowRepeat : true,
+    repeatMode: data.repeatMode === 'overwrite' ? 'overwrite' : 'new',
+    downloadStructure: data.downloadStructure === 'task-file' ? 'task-file' : 'task-field-file',
+  };
+}
+
+function currentAssignmentDraft(): AssignmentMutationInput {
+  if (assignmentEditor) return assignmentToMutation(assignmentEditor);
+  const base = defaultAssignmentDraft();
+  const seed = assignmentSeed || {};
+  return {
+    ...base,
+    ...seed,
+    collectFields: Array.isArray(seed.collectFields) && seed.collectFields.length ? seed.collectFields : base.collectFields,
+    fileRules: {
+      ...base.fileRules,
+      ...(seed.fileRules || {}),
+    },
+  };
+}
+
+function parseJsonObject(value: string, label: string): Record<string, unknown> {
+  const parsed = value.trim() ? (JSON.parse(value) as unknown) : {};
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error(`${label} must be a JSON object.`);
+  return parsed as Record<string, unknown>;
+}
+
+function readAssignmentForm(formElement: HTMLFormElement): AssignmentMutationInput {
+  const form = new FormData(formElement);
+  const title = getFormString(form, 'title');
+  if (!title) throw new Error('Assignment title is required.');
+
+  const collectFields = JSON.parse(getFormString(form, 'collectFields') || '[]') as unknown;
+  if (!Array.isArray(collectFields)) throw new Error('Collect fields must be a JSON array.');
+
+  const deadline = getFormString(form, 'deadline');
+  const allowedExtensions = splitCsv(getFormString(form, 'allowedExtensions'));
+  const renameFields = splitCsv(getFormString(form, 'renameFields'));
+
+  return {
+    title,
+    description: getFormString(form, 'description'),
+    deadline: deadline ? new Date(deadline).toISOString() : null,
+    status: getFormString(form, 'status') as AssignmentStatus,
+    allowLate: getFormCheckbox(form, 'allowLate'),
+    allowRepeat: getFormCheckbox(form, 'allowRepeat'),
+    repeatMode: getFormString(form, 'repeatMode') === 'overwrite' ? 'overwrite' : 'new',
+    downloadStructure: (getFormString(form, 'downloadStructure') || 'task-field-file') as DownloadStructure,
+    collectFields: collectFields as AssignmentFieldDto[],
+    fileRules: {
+      requiredUpload: getFormCheckbox(form, 'requiredUpload'),
+      fileType: getFormString(form, 'fileType') || 'document',
+      allowedExtensions: allowedExtensions.length ? allowedExtensions : defaultFileRules.allowedExtensions,
+      enableLimit: getFormCheckbox(form, 'enableLimit'),
+      maxFileSizeMB: getFormNumber(form, 'maxFileSizeMB', defaultFileRules.maxFileSizeMB),
+      maxFileCount: Math.max(1, Math.round(getFormNumber(form, 'maxFileCount', defaultFileRules.maxFileCount))),
+      enableRename: getFormCheckbox(form, 'enableRename'),
+      renameFields: renameFields.length ? renameFields : defaultFileRules.renameFields,
+      allowFolder: getFormCheckbox(form, 'allowFolder'),
+    },
+  };
+}
+
+function readTemplateForm(formElement: HTMLFormElement): TemplateMutationInput {
+  const form = new FormData(formElement);
+  const name = getFormString(form, 'name');
+  if (!name) throw new Error('Template name is required.');
+  return {
+    name,
+    category: (getFormString(form, 'category') || 'course') as TemplateCategory,
+    visibility: (getFormString(form, 'visibility') || 'private') as TemplateVisibility,
+    data: parseJsonObject(getFormString(form, 'data'), 'Template data'),
+  };
+}
+
+function render(): void {
+  if (!token) {
+    app.innerHTML = renderLogin();
+    bindEvents();
+    return;
+  }
+
+  app.innerHTML = html`
+    <section class="app-frame">
+      <header class="topbar">
+        <div>
+          <span class="brand">CloudNote 管理端</span>
+          <span class="subtle">平台工作台</span>
+        </div>
+        <div class="topbar-actions">
+          ${renderApiBadge()}
+          <span class="user-chip">${escapeHtml(currentUser?.displayName || currentUser?.username || 'admin')}</span>
+          <button type="button" class="button ghost" id="refresh-all" ${isBusy ? 'disabled' : ''}>刷新</button>
+          <button type="button" class="button secondary" id="logout">退出登录</button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <nav class="sidebar" aria-label="管理端栏目">
+          ${renderNavButton('overview', '概览')}
+          ${renderNavButton('assignments', '任务', assignmentsTotal)}
+          ${renderNavButton('submissions', '提交记录', submissionsTotal)}
+          ${renderNavButton('templates', '模板', templatesTotal)}
+          ${renderNavButton('statistics', '统计')}
+          ${renderNavButton('recycle', '回收站', recycleTotal)}
+          ${renderNavButton('system', '系统')}
+        </nav>
+
+        <main class="content">
+          ${renderAlerts()}
+          ${renderActiveView()}
+        </main>
+      </div>
+    </section>
+  `;
+  bindEvents();
+}
+
+function renderLogin(): string {
+  return html`
+    <section class="login-layout">
+      <section class="login-copy">
+        <span class="brand">CloudNote 管理端</span>
+        <h1>平台工作台</h1>
+        <p>通过新的 NestJS 平台 API 管理任务、提交记录、模板、存储和回收站。</p>
+        <div class="status-strip">${renderApiBadge()}<span>${config ? `上传上限 ${config.maxUploadFiles} 个文件 / ${config.maxUploadSizeMb} MB` : '正在加载配置'}</span></div>
+      </section>
+      <form class="panel login-form" id="login-form">
+        <h2>管理员登录</h2>
+        ${renderAlerts()}
+        <label>用户名<input name="username" autocomplete="username" placeholder="admin" /></label>
+        <label>密码<input name="password" type="password" autocomplete="current-password" required /></label>
+        <button type="submit" class="button primary" ${isBusy ? 'disabled' : ''}>登录</button>
+      </form>
+    </section>
+  `;
+}
+
+function renderApiBadge(): string {
+  if (!health) return '<span class="pill quiet">API 加载中</span>';
+  if (health.database.reachable) return '<span class="pill good">API 正常 / 数据库在线</span>';
+  if (health.database.configured) return '<span class="pill warn">API 降级 / 数据库离线</span>';
+  return '<span class="pill warn">API 正常 / 数据库未配置</span>';
+}
+
+function renderAlerts(): string {
+  return html`
+    ${noticeText ? `<p class="alert success">${escapeHtml(noticeText)}</p>` : ''}
+    ${errorText ? `<p class="alert error">${escapeHtml(errorText)}</p>` : ''}
+    ${isBusy ? '<p class="alert neutral">正在处理...</p>' : ''}
+  `;
+}
+
+function renderNavButton(view: AdminView, label: string, count?: number): string {
+  return html`
+    <button type="button" class="nav-button ${activeView === view ? 'active' : ''}" data-view="${view}">
+      <span>${escapeHtml(label)}</span>
+      ${typeof count === 'number' ? `<strong>${count}</strong>` : ''}
+    </button>
+  `;
+}
+
+function renderActiveView(): string {
+  if (activeView === 'assignments') return renderAssignmentsView();
+  if (activeView === 'submissions') return renderSubmissionsView();
+  if (activeView === 'templates') return renderTemplatesView();
+  if (activeView === 'statistics') return renderStatisticsView();
+  if (activeView === 'recycle') return renderRecycleView();
+  if (activeView === 'system') return renderSystemView();
+  return renderOverviewView();
+}
+
+function renderOverviewView(): string {
+  const summary = statistics?.summary;
+  const openAssignments = assignments.filter((item) => item.effectiveStatus === 'ongoing').length;
+  const lateCount = summary?.lateCount ?? recentSubmissions.filter((item) => item.isLate).length;
+  return html`
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">概览</p>
+        <h1>管理看板</h1>
+      </div>
+      <button type="button" class="button secondary" data-view="assignments">新建任务</button>
+    </section>
+
+    <section class="metric-grid">
+      ${metric('任务数', summary?.assignmentCount ?? assignmentsTotal, `${openAssignments} 个进行中`)}
+      ${metric('提交数', summary?.submittedCount ?? submissionsTotal, `${lateCount} 条迟交`)}
+      ${metric('提交人数', summary?.submitterCount ?? assignments.reduce((total, item) => total + item.submitterCount, 0))}
+      ${metric('存储占用', storage ? formatBytes(storage.totalBytes) : '加载中', storage ? `${storage.totalFiles} 个文件` : '')}
+    </section>
+
+    <section class="two-column">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>最近任务</h2>
+          <button type="button" class="button ghost" data-view="assignments">打开</button>
+        </div>
+        ${renderAssignmentTable(assignments.slice(0, 6), false)}
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>最近提交</h2>
+          <button type="button" class="button ghost" data-view="submissions">打开</button>
+        </div>
+        ${renderSubmissionList(recentSubmissions.slice(0, 6), false)}
+      </section>
+    </section>
+  `;
+}
+
+function renderAssignmentsView(): string {
+  return html`
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">任务</p>
+        <h1>任务与分享链接</h1>
+      </div>
+      <button type="button" class="button ghost" id="reset-assignment-form">清空表单</button>
+    </section>
+
+    <section class="split-layout">
+      ${renderAssignmentForm()}
+      <section class="panel">
+        <form class="toolbar-row" id="assignment-filter">
+          <input name="search" value="${escapeHtml(assignmentQuery.search)}" placeholder="搜索标题、分享码或描述" />
+          <select name="status">
+            ${option('', '全部状态', assignmentQuery.status)}
+            ${option('ongoing', '进行中', assignmentQuery.status)}
+            ${option('ended', '已结束', assignmentQuery.status)}
+            ${option('archived', '已归档', assignmentQuery.status)}
+          </select>
+          <button type="submit" class="button secondary">筛选</button>
+        </form>
+        ${renderAssignmentTable(assignments, true)}
+      </section>
+    </section>
+  `;
+}
+
+function renderAssignmentForm(): string {
+  const draft = currentAssignmentDraft();
+  const fileRules = { ...defaultFileRules, ...(draft.fileRules || {}) };
+  const collectFields = draft.collectFields?.length ? draft.collectFields : defaultFields;
+  return html`
+    <form class="panel form-grid" id="assignment-form">
+      <div class="panel-head">
+        <h2>${assignmentEditor ? `编辑任务 #${assignmentEditor.id}` : '新建任务'}</h2>
+        ${assignmentSeed && !assignmentEditor ? '<span class="pill good">已载入模板</span>' : ''}
+      </div>
+
+      <label class="span-2">标题<input name="title" value="${escapeHtml(draft.title)}" required /></label>
+      <label class="span-2">描述<textarea name="description" rows="3">${escapeHtml(draft.description || '')}</textarea></label>
+      <label>截止时间<input name="deadline" type="datetime-local" value="${escapeHtml(toDatetimeLocal(draft.deadline || null))}" /></label>
+      <label>状态
+        <select name="status">
+          ${option('ongoing', '进行中', draft.status || 'ongoing')}
+          ${option('ended', '已结束', draft.status || 'ongoing')}
+          ${option('archived', '已归档', draft.status || 'ongoing')}
+        </select>
+      </label>
+      <label>重复提交
+        <select name="repeatMode">
+          ${option('new', '保留每次提交', draft.repeatMode || 'new')}
+          ${option('overwrite', '覆盖上次提交', draft.repeatMode || 'new')}
+        </select>
+      </label>
+      <label>下载目录结构
+        <select name="downloadStructure">
+          ${option('task-field-file', '任务 / 提交人 / 文件', draft.downloadStructure || 'task-field-file')}
+          ${option('task-file', '任务 / 文件', draft.downloadStructure || 'task-field-file')}
+        </select>
+      </label>
+
+      <label class="check"><input name="allowLate" type="checkbox" ${checked(draft.allowLate)} /> 允许迟交</label>
+      <label class="check"><input name="allowRepeat" type="checkbox" ${checked(draft.allowRepeat !== false)} /> 允许重复提交</label>
+      <label class="check"><input name="requiredUpload" type="checkbox" ${checked(fileRules.requiredUpload)} /> 必须上传文件</label>
+      <label class="check"><input name="enableLimit" type="checkbox" ${checked(fileRules.enableLimit)} /> 启用文件限制</label>
+
+      <label>最大文件数<input name="maxFileCount" type="number" min="1" value="${escapeHtml(fileRules.maxFileCount)}" /></label>
+      <label>单文件大小 MB<input name="maxFileSizeMB" type="number" min="1" value="${escapeHtml(fileRules.maxFileSizeMB)}" /></label>
+      <label>文件类型<input name="fileType" value="${escapeHtml(fileRules.fileType || 'document')}" /></label>
+      <label>允许扩展名<input name="allowedExtensions" value="${escapeHtml(fileRules.allowedExtensions.join(', '))}" /></label>
+      <label class="check"><input name="enableRename" type="checkbox" ${checked(fileRules.enableRename)} /> 自动重命名文件</label>
+      <label class="check"><input name="allowFolder" type="checkbox" ${checked(fileRules.allowFolder)} /> 下载包保留目录</label>
+      <label class="span-2">重命名字段<input name="renameFields" value="${escapeHtml(fileRules.renameFields.join(', '))}" /></label>
+      <label class="span-2">收集字段 JSON<textarea name="collectFields" rows="12" spellcheck="false">${jsonText(collectFields)}</textarea></label>
+
+      <div class="form-actions span-2">
+        <button type="submit" class="button primary" ${isBusy ? 'disabled' : ''}>${assignmentEditor ? '保存修改' : '创建任务'}</button>
+        <button type="button" class="button secondary" id="reset-assignment-form">${assignmentEditor ? '取消编辑' : '重置表单'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderAssignmentTable(items: AssignmentDto[], withActions: boolean): string {
+  if (!items.length) return '<p class="empty">No assignments found.</p>';
+  return html`
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Assignment</th>
+            <th>Status</th>
+            <th>Submissions</th>
+            <th>Deadline</th>
+            ${withActions ? '<th>Actions</th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((item) => renderAssignmentRow(item, withActions)).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAssignmentRow(item: AssignmentDto, withActions: boolean): string {
+  return html`
+    <tr>
+      <td>
+        <strong>${escapeHtml(item.title)}</strong>
+        <span class="muted">#${item.id} / code ${escapeHtml(item.shareCode)}</span>
+        <span class="muted truncate">${escapeHtml(item.description || 'No description')}</span>
+      </td>
+      <td><span class="pill ${statusTone(item.effectiveStatus)}">${statusLabel(item.effectiveStatus)}</span></td>
+      <td>${item.submissionCount} records<br /><span class="muted">${item.submitterCount} submitters</span></td>
+      <td>${formatDate(item.deadline)}</td>
+      ${
+        withActions
+          ? html`
+              <td>
+                <div class="action-row">
+                  <button type="button" class="button ghost" data-copy-assignment="${item.id}">Copy link</button>
+                  <button type="button" class="button ghost" data-edit-assignment="${item.id}">Edit</button>
+                  <button type="button" class="button ghost" data-clone-assignment="${item.id}">Clone</button>
+                  <button type="button" class="button ghost" data-export-assignment="${item.id}">CSV</button>
+                  <button type="button" class="button ghost" data-download-assignment="${item.id}">ZIP</button>
+                  <button type="button" class="button ghost" data-status-assignment="${item.id}:${item.status === 'ongoing' ? 'ended' : 'ongoing'}">${item.status === 'ongoing' ? 'End' : 'Reopen'}</button>
+                  <button type="button" class="button danger" data-delete-assignment="${item.id}">Recycle</button>
+                </div>
+              </td>
+            `
+          : ''
+      }
+    </tr>
+  `;
+}
+
+function renderSubmissionsView(): string {
+  return html`
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">Submissions</p>
+        <h1>Records and files</h1>
+      </div>
+      <button type="button" class="button secondary" id="export-filtered-submissions">Export filtered CSV</button>
+    </section>
+
+    <section class="panel">
+      <form class="toolbar-row" id="submission-filter">
+        <input name="search" value="${escapeHtml(submissionQuery.search)}" placeholder="Search name, student ID, title" />
+        <select name="assignmentId">
+          ${option('', 'All assignments', submissionQuery.assignmentId)}
+          ${assignments.map((item) => option(String(item.id), `#${item.id} ${item.title}`, submissionQuery.assignmentId)).join('')}
+        </select>
+        <select name="status">
+          ${option('', 'All timing', submissionQuery.status)}
+          ${option('ontime', 'On time', submissionQuery.status)}
+          ${option('late', 'Late', submissionQuery.status)}
+        </select>
+        <button type="submit" class="button secondary">Filter</button>
+      </form>
+      ${renderSubmissionList(submissions, true)}
+    </section>
+  `;
+}
+
+function renderSubmissionList(items: SubmissionDto[], withActions: boolean): string {
+  if (!items.length) return '<p class="empty">No submissions found.</p>';
+  return html`
+    <div class="submission-list">
+      ${items.map((item) => renderSubmissionItem(item, withActions)).join('')}
+    </div>
+  `;
+}
+
+function renderSubmissionItem(item: SubmissionDto, withActions: boolean): string {
+  const fileSummary = item.files.length ? item.files.map((file) => renderFileChip(file, withActions)).join('') : '<span class="muted">No files</span>';
+  return html`
+    <article class="list-item">
+      <div class="item-main">
+        <div class="item-title">
+          <strong>#${item.id} ${escapeHtml(item.studentName || 'Unknown submitter')}</strong>
+          <span class="pill ${item.isLate ? 'warn' : 'good'}">${item.isLate ? 'Late' : 'On time'}</span>
+        </div>
+        <p class="muted">${escapeHtml(item.assignmentTitle || `Assignment #${item.assignmentId}`)} / ${escapeHtml(item.studentId || 'No student ID')}</p>
+        <p>${escapeHtml(item.homeworkTitle || 'Untitled homework')}</p>
+        <dl class="data-pairs">
+          ${Object.entries(item.submitterData || {})
+            .map(([key, value]) => `<div><dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value)}</dd></div>`)
+            .join('')}
+        </dl>
+        <div class="file-row">${fileSummary}</div>
+      </div>
+      <div class="item-side">
+        <span class="muted">${formatDate(item.uploadTime)}</span>
+        ${
+          withActions
+            ? html`
+                <div class="action-row">
+                  <button type="button" class="button ghost" data-download-submission="${item.id}">Download</button>
+                  <button type="button" class="button danger" data-delete-submission="${item.id}">Recycle</button>
+                </div>
+              `
+            : ''
+        }
+      </div>
+    </article>
+  `;
+}
+
+function renderFileChip(file: SubmissionDto['files'][number], withActions: boolean): string {
+  return html`
+    <span class="file-chip">
+      <span>${escapeHtml(file.originalFilename)} <small>${formatBytes(file.size)}</small></span>
+      ${
+        withActions
+          ? html`
+              <button type="button" class="chip-button" data-download-file="${file.id}">Get</button>
+              <button type="button" class="chip-button danger" data-delete-file="${file.id}">Recycle</button>
+            `
+          : ''
+      }
+    </span>
+  `;
+}
+
+function renderTemplatesView(): string {
+  return html`
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">Templates</p>
+        <h1>Assignment presets</h1>
+      </div>
+      <button type="button" class="button ghost" id="reset-template-form">Clear form</button>
+    </section>
+
+    <section class="split-layout">
+      ${renderTemplateForm()}
+      <section class="panel">
+        <form class="toolbar-row" id="template-filter">
+          <input name="search" value="${escapeHtml(templateQuery.search)}" placeholder="Search template name" />
+          <select name="category">
+            ${option('', 'All categories', templateQuery.category)}
+            ${option('course', 'Course', templateQuery.category)}
+            ${option('exam', 'Exam', templateQuery.category)}
+            ${option('material', 'Material', templateQuery.category)}
+          </select>
+          <button type="submit" class="button secondary">Filter</button>
+        </form>
+        ${renderTemplateList()}
+      </section>
+    </section>
+  `;
+}
+
+function renderTemplateForm(): string {
+  const data = templateEditor?.data || defaultAssignmentDraft();
+  return html`
+    <form class="panel form-grid" id="template-form">
+      <div class="panel-head span-2">
+        <h2>${templateEditor ? `Edit template #${templateEditor.id}` : 'Create template'}</h2>
+      </div>
+      <label class="span-2">Name<input name="name" value="${escapeHtml(templateEditor?.name || '')}" required /></label>
+      <label>Category
+        <select name="category">
+          ${option('course', 'Course', templateEditor?.category || 'course')}
+          ${option('exam', 'Exam', templateEditor?.category || 'course')}
+          ${option('material', 'Material', templateEditor?.category || 'course')}
+        </select>
+      </label>
+      <label>Visibility
+        <select name="visibility">
+          ${option('private', 'Private', templateEditor?.visibility || 'private')}
+          ${option('class', 'Class', templateEditor?.visibility || 'private')}
+        </select>
+      </label>
+      <label class="span-2">Template data JSON<textarea name="data" rows="18" spellcheck="false">${jsonText(data)}</textarea></label>
+      <div class="form-actions span-2">
+        <button type="submit" class="button primary" ${isBusy ? 'disabled' : ''}>${templateEditor ? 'Save template' : 'Create template'}</button>
+        <button type="button" class="button secondary" id="reset-template-form">${templateEditor ? 'Cancel edit' : 'Reset form'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderTemplateList(): string {
+  if (!templates.length) return '<p class="empty">No templates found.</p>';
+  return html`
+    <div class="submission-list">
+      ${templates
+        .map(
+          (item) => html`
+            <article class="list-item">
+              <div class="item-main">
+                <div class="item-title">
+                  <strong>${escapeHtml(item.name)}</strong>
+                  <span class="pill quiet">${escapeHtml(item.category)}</span>
+                  <span class="pill quiet">${escapeHtml(item.visibility)}</span>
+                </div>
+                <p class="muted">Updated ${formatDate(item.updatedAt)} / keys ${Object.keys(item.data || {}).join(', ') || 'none'}</p>
+              </div>
+              <div class="item-side">
+                <div class="action-row">
+                  <button type="button" class="button ghost" data-use-template="${item.id}">Use</button>
+                  <button type="button" class="button ghost" data-edit-template="${item.id}">Edit</button>
+                  <button type="button" class="button danger" data-delete-template="${item.id}">Recycle</button>
+                </div>
+              </div>
+            </article>
+          `
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+function renderStatisticsView(): string {
+  const summary = statistics?.summary;
+  return html`
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">Statistics</p>
+        <h1>Collection progress</h1>
+      </div>
+      <button type="button" class="button secondary" id="export-statistics">Export CSV</button>
+    </section>
+
+    <section class="metric-grid">
+      ${metric('Assignments', summary?.assignmentCount ?? 0)}
+      ${metric('Submitted', summary?.submittedCount ?? 0)}
+      ${metric('Submitters', summary?.submitterCount ?? 0)}
+      ${metric('Late', summary?.lateCount ?? 0)}
+    </section>
+
+    <section class="panel">
+      <form class="toolbar-row" id="statistics-filter">
+        <select name="assignmentId">
+          ${option('', 'All assignments', selectedStatisticsAssignmentId)}
+          ${assignments.map((item) => option(String(item.id), `#${item.id} ${item.title}`, selectedStatisticsAssignmentId)).join('')}
+        </select>
+        <button type="submit" class="button secondary">Refresh</button>
+      </form>
+      ${renderStatisticsTable()}
+    </section>
+  `;
+}
+
+function renderStatisticsTable(): string {
+  if (!statistics?.items.length) return '<p class="empty">No statistics yet.</p>';
+  return html`
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Assignment</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Submitters</th>
+            <th>Late</th>
+            <th>Deadline</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${statistics.items
+            .map(
+              (item) => html`
+                <tr>
+                  <td><strong>#${item.assignmentId} ${escapeHtml(item.assignmentTitle)}</strong></td>
+                  <td><span class="pill ${statusTone(item.effectiveStatus)}">${statusLabel(item.effectiveStatus)}</span></td>
+                  <td>${item.submittedCount}</td>
+                  <td>${item.submitterCount}</td>
+                  <td>${item.lateCount}</td>
+                  <td>${formatDate(item.deadline)}</td>
+                </tr>
+              `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderRecycleView(): string {
+  return html`
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">Recycle</p>
+        <h1>Deleted platform items</h1>
+      </div>
+      <button type="button" class="button danger" id="empty-recycle">Empty recycle bin</button>
+    </section>
+
+    <section class="panel">
+      <form class="toolbar-row" id="recycle-filter">
+        <input name="search" value="${escapeHtml(recycleQuery.search)}" placeholder="Search title" />
+        <select name="type">
+          ${option('', 'All types', recycleQuery.type)}
+          ${option('task', 'Tasks', recycleQuery.type)}
+          ${option('submission', 'Submissions', recycleQuery.type)}
+          ${option('file', 'Files', recycleQuery.type)}
+          ${option('template', 'Templates', recycleQuery.type)}
+        </select>
+        <button type="submit" class="button secondary">Filter</button>
+      </form>
+      ${renderRecycleList()}
+    </section>
+  `;
+}
+
+function renderRecycleList(): string {
+  if (!recycleItems.length) return '<p class="empty">Recycle bin is empty.</p>';
+  return html`
+    <div class="submission-list">
+      ${recycleItems
+        .map(
+          (item) => html`
+            <article class="list-item">
+              <div class="item-main">
+                <div class="item-title">
+                  <strong>${escapeHtml(item.title)}</strong>
+                  <span class="pill quiet">${escapeHtml(item.type)}</span>
+                  <span class="pill quiet">source ${escapeHtml(item.source)}</span>
+                </div>
+                <p class="muted">#${item.id} deleted ${formatDate(item.deletedAt)}</p>
+              </div>
+              <div class="item-side">
+                <div class="action-row">
+                  <button type="button" class="button ghost" data-restore-recycle="${item.type}:${item.id}">Restore</button>
+                  <button type="button" class="button danger" data-purge-recycle="${item.type}:${item.id}">Purge</button>
+                </div>
+              </div>
+            </article>
+          `
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+function renderSystemView(): string {
+  return html`
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">System</p>
+        <h1>Runtime and migrations</h1>
+      </div>
+      <button type="button" class="button secondary" id="refresh-system">Refresh system</button>
+    </section>
+
+    <section class="two-column">
+      <section class="panel key-values">
+        <h2>API</h2>
+        <div><span>Status</span><strong>${escapeHtml(health?.status || 'unknown')}</strong></div>
+        <div><span>API version</span><strong>${escapeHtml(health?.apiVersion || config?.apiVersion || 'unknown')}</strong></div>
+        <div><span>Database</span><strong>${health?.database.reachable ? 'reachable' : health?.database.configured ? 'offline' : 'not configured'}</strong></div>
+        <div><span>Latency</span><strong>${health?.database.latencyMs ?? 0} ms</strong></div>
+        <div><span>Upload cap</span><strong>${config ? `${config.maxUploadFiles} files / ${config.maxUploadSizeMb} MB` : 'unknown'}</strong></div>
+      </section>
+      <section class="panel key-values">
+        <h2>Storage</h2>
+        <div><span>Provider</span><strong>${escapeHtml(storage?.provider || 'local')}</strong></div>
+        <div><span>Files</span><strong>${storage?.totalFiles ?? 0}</strong></div>
+        <div><span>Size</span><strong>${storage ? formatBytes(storage.totalBytes) : '0 B'}</strong></div>
+        <div><span>Directory</span><strong class="breakable">${escapeHtml(storage?.uploadDir || 'unknown')}</strong></div>
+      </section>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Migrations</h2>
+        <button type="button" class="button primary" id="run-migrations">Run pending</button>
+      </div>
+      ${
+        appliedMigrations.length
+          ? `<ul class="migration-list">${appliedMigrations.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+          : '<p class="empty">No applied migrations reported.</p>'
+      }
+    </section>
+  `;
+}
+
+function bindEvents(): void {
+  document.querySelector<HTMLFormElement>('#login-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    const credentials: AdminLoginRequest = {
+      username: getFormString(form, 'username') || 'admin',
+      password: getFormString(form, 'password'),
+    };
+    await run(async () => {
+      const result = await api.login(credentials);
+      token = result.token;
+      currentUser = result.user;
+      localStorage.setItem(tokenKey, token);
+      await loadAdminData();
+      noticeText = `Signed in as ${result.user.displayName || result.user.username}.`;
+    });
+  });
+
+  document.querySelector<HTMLButtonElement>('#logout')?.addEventListener('click', () => {
+    token = '';
+    currentUser = null;
+    localStorage.removeItem(tokenKey);
+    api.clearToken();
+    assignments = [];
+    submissions = [];
+    recentSubmissions = [];
+    templates = [];
+    recycleItems = [];
+    statistics = null;
+    storage = null;
+    render();
+  });
+
+  document.querySelector<HTMLButtonElement>('#refresh-all')?.addEventListener('click', () => void run(loadAdminData));
+  document.querySelector<HTMLButtonElement>('#refresh-system')?.addEventListener('click', () => void run(loadSystemData));
+  document.querySelector<HTMLButtonElement>('#run-migrations')?.addEventListener('click', () =>
+    void run(async () => {
+      const result = await api.runMigrations();
+      await loadSystemData();
+      noticeText = `Migrations applied ${result.applied.length}, skipped ${result.skipped.length}.`;
+    })
+  );
+
+  document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) => {
+    button.addEventListener('click', () => {
+      activeView = button.dataset.view as AdminView;
+      noticeText = '';
+      errorText = '';
+      render();
+    });
+  });
+
+  bindAssignmentEvents();
+  bindSubmissionEvents();
+  bindTemplateEvents();
+  bindStatisticsEvents();
+  bindRecycleEvents();
+}
+
+function bindAssignmentEvents(): void {
+  document.querySelector<HTMLFormElement>('#assignment-filter')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    assignmentQuery.search = getFormString(form, 'search');
+    assignmentQuery.status = getFormString(form, 'status');
+    await run(loadAssignments);
+  });
+
+  document.querySelector<HTMLFormElement>('#assignment-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    let input: AssignmentMutationInput;
+    try {
+      input = readAssignmentForm(event.currentTarget as HTMLFormElement);
+    } catch (error) {
+      showError(error);
+      return;
+    }
+    await run(async () => {
+      if (assignmentEditor) await api.updateAssignment(assignmentEditor.id, input);
+      else await api.createAssignment(input);
+      assignmentEditor = null;
+      assignmentSeed = null;
+      await Promise.all([loadAssignments(), loadStatistics(), loadRecentSubmissions()]);
+      noticeText = 'Assignment saved.';
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('#reset-assignment-form').forEach((button) => {
+    button.addEventListener('click', () => {
+      assignmentEditor = null;
+      assignmentSeed = null;
+      noticeText = '';
+      errorText = '';
+      render();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-assignment]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = findAssignment(Number(button.dataset.copyAssignment));
+      if (!item) return;
+      void copyText(publicAssignmentUrl(item));
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-edit-assignment]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = findAssignment(Number(button.dataset.editAssignment));
+      if (!item) return;
+      assignmentEditor = item;
+      assignmentSeed = null;
+      noticeText = '';
+      errorText = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      render();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-clone-assignment]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = findAssignment(Number(button.dataset.cloneAssignment));
+      if (!item) return;
+      assignmentEditor = null;
+      assignmentSeed = { ...assignmentToMutation(item), title: `${item.title} copy`, status: 'ongoing' };
+      noticeText = 'Assignment copied into the form.';
+      errorText = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      render();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-status-assignment]').forEach((button) => {
+    button.addEventListener('click', () =>
+      void run(async () => {
+        const [rawId, status] = String(button.dataset.statusAssignment || '').split(':');
+        const item = findAssignment(Number(rawId));
+        if (!item) throw new Error('Assignment not found.');
+        await api.updateAssignment(item.id, { ...assignmentToMutation(item), status: status as AssignmentStatus });
+        await Promise.all([loadAssignments(), loadStatistics()]);
+        noticeText = 'Assignment status updated.';
+      })
+    );
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-export-assignment]').forEach((button) => {
+    button.addEventListener('click', () =>
+      void downloadResponse(() => api.exportSubmissions({ assignmentId: Number(button.dataset.exportAssignment) }), 'cloudnote-submissions.csv')
+    );
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-download-assignment]').forEach((button) => {
+    button.addEventListener('click', () =>
+      void downloadResponse(() => api.downloadAllFiles({ assignmentId: Number(button.dataset.downloadAssignment) }), 'cloudnote-assignment.zip')
+    );
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-delete-assignment]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!confirm('Move this assignment and its submissions to the recycle bin?')) return;
+      void run(async () => {
+        await api.deleteAssignment(Number(button.dataset.deleteAssignment), true);
+        await Promise.all([loadAssignments(), loadSubmissions(), loadRecentSubmissions(), loadStatistics(), loadRecycleItems(), loadStorage()]);
+        noticeText = 'Assignment moved to recycle bin.';
+      });
+    });
+  });
+}
+
+function bindSubmissionEvents(): void {
+  document.querySelector<HTMLFormElement>('#submission-filter')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    submissionQuery.search = getFormString(form, 'search');
+    submissionQuery.assignmentId = getFormString(form, 'assignmentId');
+    submissionQuery.status = getFormString(form, 'status');
+    await run(loadSubmissions);
+  });
+
+  document.querySelector<HTMLButtonElement>('#export-filtered-submissions')?.addEventListener('click', () => {
+    const assignmentId = submissionQuery.assignmentId ? Number(submissionQuery.assignmentId) : undefined;
+    void downloadResponse(() => api.exportSubmissions({ assignmentId, status: submissionQuery.status || undefined, search: submissionQuery.search || undefined }), 'cloudnote-submissions.csv');
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-download-submission]').forEach((button) => {
+    button.addEventListener('click', () =>
+      void downloadResponse(() => api.downloadSubmission(Number(button.dataset.downloadSubmission)), `cloudnote-submission-${button.dataset.downloadSubmission}.zip`)
+    );
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-delete-submission]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!confirm('Move this submission to the recycle bin?')) return;
+      void run(async () => {
+        await api.deleteSubmission(Number(button.dataset.deleteSubmission));
+        await Promise.all([loadSubmissions(), loadRecentSubmissions(), loadAssignments(), loadStatistics(), loadRecycleItems(), loadStorage()]);
+        noticeText = 'Submission moved to recycle bin.';
+      });
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-download-file]').forEach((button) => {
+    button.addEventListener('click', () => void downloadResponse(() => api.downloadFile(Number(button.dataset.downloadFile)), 'cloudnote-file'));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-delete-file]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!confirm('Move this file to the recycle bin?')) return;
+      void run(async () => {
+        await api.deleteFile(Number(button.dataset.deleteFile));
+        await Promise.all([loadSubmissions(), loadRecentSubmissions(), loadRecycleItems(), loadStorage()]);
+        noticeText = 'File moved to recycle bin.';
+      });
+    });
+  });
+}
+
+function bindTemplateEvents(): void {
+  document.querySelector<HTMLFormElement>('#template-filter')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    templateQuery.search = getFormString(form, 'search');
+    templateQuery.category = getFormString(form, 'category');
+    await run(loadTemplates);
+  });
+
+  document.querySelector<HTMLFormElement>('#template-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    let input: TemplateMutationInput;
+    try {
+      input = readTemplateForm(event.currentTarget as HTMLFormElement);
+    } catch (error) {
+      showError(error);
+      return;
+    }
+    await run(async () => {
+      if (templateEditor) await api.updateTemplate(templateEditor.id, input);
+      else await api.createTemplate(input);
+      templateEditor = null;
+      await Promise.all([loadTemplates(), loadRecycleItems()]);
+      noticeText = 'Template saved.';
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('#reset-template-form').forEach((button) => {
+    button.addEventListener('click', () => {
+      templateEditor = null;
+      noticeText = '';
+      errorText = '';
+      render();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-edit-template]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = findTemplate(Number(button.dataset.editTemplate));
+      if (!item) return;
+      templateEditor = item;
+      noticeText = '';
+      errorText = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      render();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-use-template]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = findTemplate(Number(button.dataset.useTemplate));
+      if (!item) return;
+      assignmentEditor = null;
+      assignmentSeed = normalizeAssignmentSeed(item.data);
+      activeView = 'assignments';
+      noticeText = `Template "${item.name}" loaded into the assignment form.`;
+      errorText = '';
+      render();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-delete-template]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!confirm('Move this template to the recycle bin?')) return;
+      void run(async () => {
+        await api.deleteTemplate(Number(button.dataset.deleteTemplate));
+        await Promise.all([loadTemplates(), loadRecycleItems()]);
+        noticeText = 'Template moved to recycle bin.';
+      });
+    });
+  });
+}
+
+function bindStatisticsEvents(): void {
+  document.querySelector<HTMLFormElement>('#statistics-filter')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    selectedStatisticsAssignmentId = getFormString(form, 'assignmentId');
+    await run(loadStatistics);
+  });
+
+  document.querySelector<HTMLButtonElement>('#export-statistics')?.addEventListener('click', () => {
+    const assignmentId = selectedStatisticsAssignmentId ? Number(selectedStatisticsAssignmentId) : undefined;
+    void downloadResponse(() => api.exportStatistics({ assignmentId }), 'cloudnote-statistics.csv');
+  });
+}
+
+function bindRecycleEvents(): void {
+  document.querySelector<HTMLFormElement>('#recycle-filter')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    recycleQuery.search = getFormString(form, 'search');
+    recycleQuery.type = getFormString(form, 'type');
+    await run(loadRecycleItems);
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-restore-recycle]').forEach((button) => {
+    button.addEventListener('click', () =>
+      void run(async () => {
+        const item = parseRecycleToken(String(button.dataset.restoreRecycle || ''));
+        await api.restoreRecycleItems([item]);
+        await Promise.all([loadAssignments(), loadSubmissions(), loadRecentSubmissions(), loadTemplates(), loadStatistics(), loadRecycleItems(), loadStorage()]);
+        noticeText = 'Recycle item restored.';
+      })
+    );
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-purge-recycle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!confirm('Permanently purge this item?')) return;
+      void run(async () => {
+        const item = parseRecycleToken(String(button.dataset.purgeRecycle || ''));
+        await api.purgeRecycleItems([item]);
+        await Promise.all([loadAssignments(), loadSubmissions(), loadRecentSubmissions(), loadTemplates(), loadStatistics(), loadRecycleItems(), loadStorage()]);
+        noticeText = 'Recycle item purged.';
+      });
+    });
+  });
+
+  document.querySelector<HTMLButtonElement>('#empty-recycle')?.addEventListener('click', () => {
+    if (!confirm('Permanently purge every recycle bin item?')) return;
+    void run(async () => {
+      const result = await api.emptyRecycleBin();
+      await Promise.all([loadAssignments(), loadSubmissions(), loadRecentSubmissions(), loadTemplates(), loadStatistics(), loadRecycleItems(), loadStorage()]);
+      noticeText = `Purged ${result.purged} item(s).`;
+    });
+  });
+}
+
+function findAssignment(id: number): AssignmentDto | undefined {
+  return assignments.find((item) => item.id === id);
+}
+
+function findTemplate(id: number): TemplateDto | undefined {
+  return templates.find((item) => item.id === id);
+}
+
+function parseRecycleToken(value: string): { type: RecycleItemType; id: number } {
+  const [type, rawId] = value.split(':');
+  if (!['task', 'submission', 'file', 'template'].includes(type)) throw new Error('Invalid recycle item type.');
+  const id = Number(rawId);
+  if (!Number.isInteger(id)) throw new Error('Invalid recycle item ID.');
+  return { type: type as RecycleItemType, id };
+}
+
+async function copyText(value: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(value);
+    noticeText = 'Share link copied.';
+    errorText = '';
+  } catch {
+    const input = document.createElement('textarea');
+    input.value = value;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    input.remove();
+    noticeText = 'Share link copied.';
+    errorText = '';
+  }
+  render();
+}
+
+async function downloadResponse(fetchResponse: () => Promise<Response>, fallbackName: string): Promise<void> {
+  await run(async () => {
+    const response = await fetchResponse();
+    const blob = await response.blob();
+    const name = resolveFilename(response, fallbackName);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    noticeText = `Downloaded ${name}.`;
+  });
+}
+
+function resolveFilename(response: Response, fallbackName: string): string {
+  const disposition = response.headers.get('content-disposition') || '';
+  const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  if (encoded) return decodeURIComponent(encoded);
+  return disposition.match(/filename="([^"]+)"/i)?.[1] || fallbackName;
+}
+
+async function run(action: () => Promise<void>): Promise<void> {
+  try {
+    isBusy = true;
+    errorText = '';
+    noticeText = '';
+    render();
+    await action();
+  } catch (error) {
+    errorText = error instanceof CloudNoteApiError ? `${error.code}: ${error.message}` : error instanceof Error ? error.message : String(error);
+  } finally {
+    isBusy = false;
+    render();
+  }
+}
+
+async function loadAssignments(): Promise<void> {
+  const result = await api.listAssignments({
+    page: assignmentQuery.page,
+    perPage: assignmentQuery.perPage,
+    search: assignmentQuery.search || undefined,
+    status: assignmentQuery.status || undefined,
+  });
+  assignments = result.items;
+  assignmentsTotal = result.total;
+}
+
+async function loadSubmissions(): Promise<void> {
+  const result = await api.listSubmissions({
+    page: submissionQuery.page,
+    perPage: submissionQuery.perPage,
+    search: submissionQuery.search || undefined,
+    assignmentId: submissionQuery.assignmentId ? Number(submissionQuery.assignmentId) : undefined,
+    status: submissionQuery.status || undefined,
+  });
+  submissions = result.items;
+  submissionsTotal = result.total;
+}
+
+async function loadRecentSubmissions(): Promise<void> {
+  const result = await api.listSubmissions({ page: 1, perPage: 6 });
+  recentSubmissions = result.items;
+}
+
+async function loadTemplates(): Promise<void> {
+  const result = await api.listTemplates({
+    page: templateQuery.page,
+    perPage: templateQuery.perPage,
+    search: templateQuery.search || undefined,
+    category: templateQuery.category || undefined,
+  });
+  templates = result.items;
+  templatesTotal = result.total;
+}
+
+async function loadRecycleItems(): Promise<void> {
+  const result = await api.listRecycleItems({
+    page: recycleQuery.page,
+    perPage: recycleQuery.perPage,
+    search: recycleQuery.search || undefined,
+    type: recycleQuery.type || undefined,
+  });
+  recycleItems = result.items;
+  recycleTotal = result.total;
+}
+
+async function loadStatistics(): Promise<void> {
+  statistics = await api.getStatistics({
+    assignmentId: selectedStatisticsAssignmentId ? Number(selectedStatisticsAssignmentId) : undefined,
+  });
+}
+
+async function loadStorage(): Promise<void> {
+  storage = await api.getStorageSummary();
+}
+
+async function loadSystemData(): Promise<void> {
+  const [nextHealth, nextConfig, nextStorage, migrations] = await Promise.all([api.health(), api.getPublicConfig(), api.getStorageSummary(), api.listMigrations()]);
+  health = nextHealth;
+  config = nextConfig;
+  storage = nextStorage;
+  appliedMigrations = migrations.applied;
+}
+
+async function loadAdminData(): Promise<void> {
+  const [nextHealth, nextConfig, user] = await Promise.all([api.health(), api.getPublicConfig(), api.me()]);
+  health = nextHealth;
+  config = nextConfig;
+  currentUser = user;
+  await Promise.all([loadAssignments(), loadSubmissions(), loadRecentSubmissions(), loadTemplates(), loadStatistics(), loadStorage(), loadRecycleItems(), loadSystemData()]);
+}
+
+async function init(): Promise<void> {
+  try {
+    health = await api.health();
+    config = await api.getPublicConfig();
+    if (token) await loadAdminData();
+  } catch (error) {
+    if (error instanceof CloudNoteApiError && (error.status === 401 || error.status === 403)) {
+      token = '';
+      localStorage.removeItem(tokenKey);
+      api.clearToken();
+      errorText = 'Session expired. Sign in again.';
+    } else {
+      errorText = error instanceof Error ? error.message : String(error);
+    }
+  } finally {
+    render();
+  }
+}
+
+void init();
